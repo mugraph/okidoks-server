@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/mugraph/pub-app-test/pub-server-test/models"
+	"github.com/mugraph/okidoks/okidoks-server/models"
 )
 
 func main() {

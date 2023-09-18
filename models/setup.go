@@ -16,13 +16,13 @@ import (
 var DB *gorm.DB
 
 func ConnectDatabase() {
-	dsn := "host=localhost user=postgres dbname=publications port=5432 sslmode=disable"
+	dsn := "host=localhost user=postgres dbname=okidoks_db port=5432 sslmode=disable"
 	database, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
 	if err != nil {
 		log.Fatal("[setup.go] Failed to connect to database!", err)
 	}
-	database.AutoMigrate(&Tour{}, &Chapter{}, &Properties{})
+	// database.AutoMigrate(&Tour{}, &Chapter{}, &Properties{})
 
 	DB = database
 }
