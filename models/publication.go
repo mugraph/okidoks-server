@@ -9,6 +9,6 @@ import (
 
 type Publication struct {
 	gorm.Model
-	Name				string
-	Attributes	datatypes.JSON
+	Name       string
+	Attributes datatypes.JSON
 }

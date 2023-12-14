@@ -2,6 +2,10 @@
 `okidoks-server` is meant to provide a simple API for exchanging data with
 its sister project [okidoks-client](https://github.com/mugraph/okidoks-client).
 
+1) Have a postgres database named `okidoks_db` and user `postgres` on
+`localhost` and bound to port `5432`.
+2) Run `go run main.go` and head over to `localhost:8080/publications`.
+
 ## Prerequisites
 
 - [gin](https://github.com/gin-gonic/gin): router & webserver
