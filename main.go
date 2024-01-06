@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/mugraph/okidoks-server/models"
 	"github.com/mugraph/okidoks-server/controllers"
+	"github.com/mugraph/okidoks-server/models"
 )
 
 func main() {
@@ -13,5 +13,5 @@ func main() {
 
 	router.GET("/publications", controllers.FindPublications)
 
-	router.Run()
+	router.Run(":8081")
 }
