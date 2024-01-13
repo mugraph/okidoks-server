@@ -22,16 +22,20 @@ func main() {
 
 	models.ConnectDatabase()
 
-	// Add Resources
-	resource, err := models.ResourceFromDOI(*doi)
+	// Get DataCite attributes
+	attr, err := models.GetDataCite(*doi)
 	if err != nil {
 		log.Fatal(err)
 	}
-	models.AddResourceToDB(resource)
+
+	// Read DataCite into resource
+	resource, err := models.ReadDataCite(attr)
+	if err != nil {
+		log.Fatal(err)
+	}
+	models.DB.Create(&resource)
 
 	router.GET("/resources", controllers.FindResources)
-	router.GET("/authors", controllers.FindAuthors)
-	router.GET("/affiliations", controllers.FindAffiliations)
 
 	router.Run(":8081")
 }

@@ -19,7 +19,7 @@ func ConnectDatabase() {
 		log.Fatal("[setup.go] Failed to connect to database!", err)
 	}
 
-	database.AutoMigrate(&Resource{}, &Author{})
+	database.AutoMigrate(&Resource{}, &Contributor{}, &License{}, &Publisher{})
 
 	DB = database
 }

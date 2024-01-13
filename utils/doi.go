@@ -10,8 +10,8 @@ import (
 )
 
 type DOIRAObj struct {
-	doi string
-	ra  string
+	DOI string
+	RA  string
 }
 
 // Return the DOI registration agency for a given DOI
@@ -46,7 +46,7 @@ func GetDOIRA(doi string) (ra string, err error) {
 		return "", fmt.Errorf("Failed to unmarshal JSON: %v", err)
 	}
 
-	ra = obj[0].ra
+	ra = obj[0].RA
 
 	return ra, nil
 }
