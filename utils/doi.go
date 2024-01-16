@@ -131,7 +131,7 @@ func DOIFromURL(url string) (doi string, err error) {
 		doi = strings.ToLower(doi)
 	} else {
 		// Handle the case when there is no match[6]
-		err := fmt.Errorf("No doi found in the match")
+		err := fmt.Errorf("No DOI found in the match")
 		return "", err
 	}
 

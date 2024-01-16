@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/mugraph/okidoks-server/controllers"
 	"github.com/mugraph/okidoks-server/models"
+	"github.com/mugraph/okidoks-server/utils"
 )
 
 var debugMode bool
@@ -22,18 +23,26 @@ func main() {
 
 	models.ConnectDatabase()
 
-	// Get DataCite attributes
-	attr, err := models.GetDataCite(*doi)
+	ra, err := utils.GetDOIRA(*doi)
 	if err != nil {
 		log.Fatal(err)
-	}
+	} else if ra == "DataCite" {
 
-	// Read DataCite into resource
-	resource, err := models.ReadDataCite(attr)
-	if err != nil {
-		log.Fatal(err)
+		// Get DataCite attributes
+		attr, err := models.GetDataCite(*doi)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// Read DataCite into resource
+		resource, err := models.ReadDataCite(attr)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// Add resource to DB
+		models.DB.Create(&resource)
 	}
-	models.DB.Create(&resource)
 
 	router.GET("/resources", controllers.FindResources)
 

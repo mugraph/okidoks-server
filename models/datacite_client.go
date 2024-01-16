@@ -129,6 +129,11 @@ type DataCiteData struct {
 }
 
 func GetDataCite(doi string) (attributes DataCiteAttributes, err error) {
+	// doi, err = utils.ValidateDOI(doi)
+	// if err != nil {
+	// 	return DataCiteAttributes{}, fmt.Errorf("Failed to validate DOI")
+	// }
+
 	// Construct the API URL for fetching DOI metadata
 	apiURL := "https://api.datacite.org/dois/" + doi
 
@@ -155,7 +160,7 @@ func GetDataCite(doi string) (attributes DataCiteAttributes, err error) {
 		return DataCiteAttributes{}, fmt.Errorf("Failed to unmarshal JSON: %v", err)
 	}
 
-	fmt.Printf("\n%v\n\n", data.Attributes)
+	// fmt.Printf("\n%v\n\n", data.Attributes)
 
 	return data.Attributes, nil
 }
@@ -178,12 +183,6 @@ func ReadDataCite(attributes DataCiteAttributes) (resource Resource, err error) 
 		typeGeneral = typeAdditional
 		typeAdditional = ""
 	}
-
-	// contributors := utils.GetAuthors(meta.)
-	// contrib := utils.GetAuthors()
-	// if contrib != "" {
-	// 	contributers = contributors + contrib
-	// }
 
 	publisher := Publisher{Name: meta.Publisher}
 
