@@ -1,3 +1,5 @@
+// Version: v0.10.5
+// URL:     https://commonmeta.org/commonmeta_v0.10.5.json
 package models
 
 import (
@@ -32,7 +34,6 @@ type Container struct {
 	ResourceID string
 }
 
-// Already in ./models/affiliation.go
 type Affiliation struct {
 	ID            *string `json:"id,omitempty"`
 	Name          *string `json:"name,omitempty"`
@@ -117,13 +118,6 @@ type License struct {
 	UpdatedAt time.Time `json:"updated_at" example:"2024-01-05T22:00:00.000000+01:00"`
 	ID        *string   `json:"id,omitempty"`
 	URL       *string   `json:"url,omitempty"`
-}
-
-// The publisher of the resource.
-type Publisher struct {
-	ID         string `json:"id,omitempty"` // The identifier for the publisher.
-	Name       string `json:"name"`         // The name of the publisher.
-	ResourceID string `json:"-"`
 }
 
 type Reference struct {
@@ -250,8 +244,9 @@ const (
 type SchemaVersion string
 
 const (
-	HTTPDataciteOrgSchemaKernel3 SchemaVersion = "http://datacite.org/schema/kernel-3"
-	HTTPDataciteOrgSchemaKernel4 SchemaVersion = "http://datacite.org/schema/kernel-4"
+	HTTPDataciteOrgSchemaKernel3          SchemaVersion = "http://datacite.org/schema/kernel-3"
+	HTTPDataciteOrgSchemaKernel4          SchemaVersion = "http://datacite.org/schema/kernel-4"
+	HTTPSCommonmetaOrgCommonmetaV0105JSON SchemaVersion = "https://commonmeta.org/commonmeta_v0.10.5.json"
 )
 
 // The state of the resource.

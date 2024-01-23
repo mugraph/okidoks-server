@@ -8,15 +8,15 @@ import (
 
 // JSON representation of the Commonmeta schema.
 type Resource struct {
-	ID                   string                `json:"id" gorm:"primaryKey"` // The unique identifier for the resource.
-	UUID                 uuid.UUID             `json:"uuid" gorm:"type:uuid;default:gen_random_uuid()" example:"5f410ec2-8eb8-4afd-b1f1-5a76114cc53e"`
+	UUID                 uuid.UUID             `json:"uuid" gorm:"primaryKey;type:uuid;default:gen_random_uuid()" example:"5f410ec2-8eb8-4afd-b1f1-5a76114cc53e"`
 	CreatedAt            time.Time             `json:"created_at" example:"2024-01-05T19:00:00.000000+01:00"`
 	UpdatedAt            time.Time             `json:"updated_at" example:"2024-01-05T22:00:00.000000+01:00"`
+	ID                   string                `json:"id" gorm:"uniqueIndex"`                                // The unique identifier for the resource.
 	AdditionalType       *string               `json:"additional_type,omitempty"`                            // The additional type of the resource.
 	AlternateIdentifiers []AlternateIdentifier `json:"alternate_identifiers,omitempty"`                      // Alternate identifiers for the resource.
 	ArchiveLocations     []ArchiveLocation     `json:"archive_locations,omitempty" gorm:"type:text[]"`       // The location where content is archived.
 	Container            *Container            `json:"container,omitempty"`                                  // The container of the resource.
-	Contributors         []*Contributor        `json:"contributors" gorm:"many2many:resource_contributors;"` // The contributors to the resource.
+	Contributors         []Contributor         `json:"contributors" gorm:"many2many:resource2contributors;"` // The contributors to the resource.
 	Date                 Date                  `json:"date"`                                                 // The dates for the resource.
 	Descriptions         []DescriptionElement  `json:"descriptions,omitempty"`                               // The descriptions of the resource.
 	Files                []File                `json:"files,omitempty"`                                      // The downloadable files for the resource.
@@ -27,7 +27,7 @@ type Resource struct {
 	// LicenseID            uuid.UUID
 	// License              *License  `json:"license,omitempty"`                     // The license for the resource. Use one of the SPDX license identifiers.
 	Provider           *Provider           `json:"provider,omitempty" gorm:"type:text[]"` // The provider of the resource. This can be a DOI registration agency or a repository.
-	Publisher          Publisher           `json:"publisher"`                             // The publisher of the resource.
+	Publisher          Publisher           `json:"publisher" gorm:"embedded"`             // The publisher of the resource.
 	References         []Reference         `json:"references,omitempty"`                  // The references of the resource.
 	RelatedIdentifiers []RelatedIdentifier `json:"related_identifiers,omitempty"`         // Other resolvable persistent unique IDs related to the resource.
 	SchemaVersion      *SchemaVersion      `json:"schema_version,omitempty"`              // The schema version of the resource.
