@@ -7,17 +7,35 @@ import (
 	"github.com/mugraph/okidoks-server/logger"
 	"github.com/mugraph/okidoks-server/models"
 	"github.com/mugraph/okidoks-server/utils"
+	"gorm.io/gorm/clause"
 )
 
 var log = logger.Log
+
+type doiPayload struct {
+	URL string
+}
+
+type resourcePayload struct {
+	Resources []models.Resource `json:"resources"`
+}
 
 // GET /resources
 func FindResources(c *gin.Context) {
 	resources := []models.Resource{}
 
-	models.DB.Preload("ContributorRoles").Preload("Contributors").Find(&resources)
+	models.DB.Preload("Contributors.ContributorRoles").Preload(clause.Associations).Find(&resources)
 
-	c.JSON(http.StatusOK, &resources)
+	// resourcesJSON, err := json.MarshalIndent(resources, "", "  ")
+	// if err != nil {
+	// 	log.Error(err.Error())
+	// }
+
+	// fmt.Printf("MarshalIndent Contributors: %s\n", string(resourcesJSON))
+
+	c.JSON(http.StatusOK, resourcePayload{
+		Resources: resources,
+	})
 }
 
 // POST /resources
@@ -47,6 +65,13 @@ func CreateResource(c *gin.Context) {
 		if err != nil {
 			log.Warn("Could not read DataCite metadata to Resource. Error:", err)
 		}
+
+		// resourceJSON, err := json.MarshalIndent(resource, "", "  ")
+		// if err != nil {
+		// 	log.Error(err.Error())
+		// }
+
+		// fmt.Printf("MarshalIndent Contributors: %s\n", string(resourceJSON))
 
 		// Add resource to DB
 		models.DB.Create(&resource)

@@ -10,7 +10,6 @@ import (
 	"github.com/mugraph/okidoks-server/utils"
 )
 
-var debugMode bool
 var log = logger.Log
 
 func main() {
@@ -18,9 +17,7 @@ func main() {
 
 	// Parse command line flags
 	doi := flag.String("doi", "10.5555/12345678", "a string")
-	debug := flag.Bool("debug", false, "Enable debug mode")
 	flag.Parse()
-	debugMode = *debug
 
 	router := gin.New()
 	models.ConnectDatabase()
@@ -50,6 +47,8 @@ func main() {
 	router.POST("/resources", controllers.CreateResource)
 
 	router.GET("/contributors", controllers.FindContributors)
+
+	router.GET("/publishers", controllers.FindPublishers)
 
 	router.Run(":8081")
 }

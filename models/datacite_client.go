@@ -34,6 +34,7 @@ type DataCiteAttributes struct {
 	Types              *DataCiteTypes        `json:"types"`
 	RelatedIdentifiers []RelatedIdentifier   `json:"relatedIdentifier"`
 	URL                string                `json:"url"`
+	RightsList         []DataCiteRightsList  `json:"rightsList"`
 }
 
 type DataCiteTitle struct {
@@ -110,6 +111,15 @@ type DataCiteRelatedIdentifier struct {
 	RelatedIdentifierType string `json:"relatedIdentifierType"`
 }
 
+type DataCiteRightsList struct {
+	Lang                   *string `json:"lang,omitempty"`
+	Rights                 *string `json:"rights,omitempty"`
+	RightsIdentifier       *string `json:"rightsIdentifier,omitempty"`
+	RightsIdentifierScheme *string `json:"rightsIdentifierScheme,omitempty"`
+	RightsURI              *string `json:"rightsUri,omitempty"`
+	SchemeURI              *string `json:"schemeUri,omitempty"`
+}
+
 func GetDataCite(doi string) (attributes DataCiteAttributes, err error) {
 	doi, err = utils.ValidateDOI(doi)
 	if err != nil {
@@ -171,7 +181,7 @@ func ReadDataCite(attributes DataCiteAttributes) (resource Resource, err error) 
 	for _, v := range meta.Contributors {
 		contributorRoles := []ContributorRole{}
 		contributorRoles = append(contributorRoles, ContributorRole{Role: Role(*v.ContributorType)})
-		fmt.Printf("%v\n", contributorRoles)
+		// fmt.Printf("%v\n", contributorRoles)
 
 		// if v.ContributorType is Person
 		contributors = append(contributors, Contributor{
@@ -184,11 +194,20 @@ func ReadDataCite(attributes DataCiteAttributes) (resource Resource, err error) 
 		// 	Name:  v.Name,
 		// })
 	}
-	contributorsJSON, err := json.MarshalIndent(contributors, "", "  ")
-	if err != nil {
-		log.Error(err.Error())
+
+	license := License{}
+	if len(meta.RightsList) > 0 {
+		license = License{
+			URL: meta.RightsList[0].RightsURI,
+		}
 	}
-	fmt.Printf("MarshalIndent Contributors: %s\n", string(contributorsJSON))
+
+	// contributorsJSON, err := json.MarshalIndent(contributors, "", "  ")
+	// if err != nil {
+	// 	log.Error(err.Error())
+	// }
+
+	// fmt.Printf("MarshalIndent Contributors: %s\n", string(contributorsJSON))
 
 	resource = Resource{
 		ID:           id,
@@ -198,9 +217,8 @@ func ReadDataCite(attributes DataCiteAttributes) (resource Resource, err error) 
 		Publisher:    publisher,
 		// Recommended and optional properties
 		AdditionalType: &typeAdditional,
+		License:        &license,
 	}
-
-	// fmt.Printf("%v\n", resource)
 
 	return resource, nil
 }
