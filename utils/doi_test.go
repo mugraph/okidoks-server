@@ -26,7 +26,7 @@ func TestGetDOIRA(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			ans, _ := GetDOIRA(tt.input)
 			if ans != tt.want {
-				t.Errorf("Got %s, want %s.", ans, tt.want)
+				t.Errorf("got %s, want %s", ans, tt.want)
 			}
 		})
 	}
@@ -49,7 +49,7 @@ func TestValidateDOI(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			ans, _ := ValidateDOI(tt.input)
 			if ans != tt.want {
-				t.Errorf("Got %s, want %s.", ans, tt.want)
+				t.Errorf("got %s, want %s", ans, tt.want)
 			}
 		})
 	}
@@ -73,7 +73,7 @@ func TestValidaterePrefix(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			ans, _ := ValidatePrefix(tt.input)
 			if ans != tt.want {
-				t.Errorf("Got %s, want %s.", ans, tt.want)
+				t.Errorf("got %s, want %s", ans, tt.want)
 			}
 		})
 	}
@@ -99,7 +99,7 @@ func TestDOIfromURL(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			ans, _ := DOIFromURL(tt.input)
 			if ans != tt.want {
-				t.Errorf("Got %s, want %s.", ans, tt.want)
+				t.Errorf("got %s, want %s", ans, tt.want)
 			}
 		})
 	}
@@ -120,7 +120,7 @@ func TestDOIAsURL(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			ans, _ := DOIAsURL(tt.input)
 			if ans != tt.want {
-				t.Errorf("Got %s, want %s.", ans, tt.want)
+				t.Errorf("got %s, want %s", ans, tt.want)
 			}
 		})
 	}

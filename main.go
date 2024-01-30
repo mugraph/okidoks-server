@@ -24,19 +24,22 @@ func main() {
 
 	ra, err := utils.GetDOIRA(*doi)
 	if err != nil {
-		log.Warn("Could not get registration agency from DOI: %v. Error:", *doi, err)
-	} else if ra == "DataCite" {
+		log.Warn("could not get registration agency from DOI", "input", *doi, "error", err)
+		return
+	}
+
+	if ra == "DataCite" {
 
 		// Get DataCite attributes
 		attr, err := models.GetDataCite(*doi)
 		if err != nil {
-			log.Warn("Could not get DataCite metadat for DOI: %v. Error:", *doi, err)
+			log.Warn("could not get DataCite metadat for DOI", "input", *doi, "error", err)
 		}
 
 		// Read DataCite into resource
 		resource, err := models.ReadDataCite(attr)
 		if err != nil {
-			log.Warn("Could not read DataCite metadata to Resource. Error:", err)
+			log.Warn("could not read DataCite metadata to Resource", "error", err)
 		}
 
 		// Add resource to DB

@@ -26,13 +26,6 @@ func FindResources(c *gin.Context) {
 
 	models.DB.Preload("Contributors.ContributorRoles").Preload(clause.Associations).Find(&resources)
 
-	// resourcesJSON, err := json.MarshalIndent(resources, "", "  ")
-	// if err != nil {
-	// 	log.Error(err.Error())
-	// }
-
-	// fmt.Printf("MarshalIndent Contributors: %s\n", string(resourcesJSON))
-
 	c.JSON(http.StatusOK, resourcePayload{
 		Resources: resources,
 	})
@@ -49,33 +42,37 @@ func CreateResource(c *gin.Context) {
 		return
 	}
 
-	ra, err := utils.GetDOIRA(dp.URL)
+	doiURL, err := utils.DOIAsURL(dp.URL)
 	if err != nil {
-		log.Warn("Could not get registration agency from DOI: %v. Error:", dp.URL, err)
-	} else if ra == "DataCite" {
+		log.Warn("could not get DOI as URL", "input", dp.URL, "error", err)
+		return
+	}
+
+	ra, err := utils.GetDOIRA(doiURL)
+	if err != nil {
+		log.Warn("could not get registration agency from DOI", "input", doiURL, "error", err)
+		return
+	}
+
+	if ra == "DataCite" {
 
 		// Get DataCite attributes
-		attr, err := models.GetDataCite(dp.URL)
+		attr, err := models.GetDataCite(doiURL)
 		if err != nil {
-			log.Warn("Could not get DataCite metadat for DOI: %v. Error:", dp.URL, err)
+			log.Warn("could not get DataCite metadata for DOI", "input", doiURL, "error", err)
+			return
 		}
-
 		// Read DataCite into resource
 		resource, err := models.ReadDataCite(attr)
 		if err != nil {
-			log.Warn("Could not read DataCite metadata to Resource. Error:", err)
+			log.Warn("could not read DataCite metadata to Resource", "error", err)
+			return
 		}
-
-		// resourceJSON, err := json.MarshalIndent(resource, "", "  ")
-		// if err != nil {
-		// 	log.Error(err.Error())
-		// }
-
-		// fmt.Printf("MarshalIndent Contributors: %s\n", string(resourceJSON))
 
 		// Add resource to DB
 		models.DB.Create(&resource)
 
 		c.JSON(http.StatusOK, gin.H{"data": resource})
+
 	}
 }

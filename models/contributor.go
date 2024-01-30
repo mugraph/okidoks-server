@@ -21,16 +21,6 @@ type Contributor struct {
 	Resources        []*Resource       `json:"resources" gorm:"many2many:resource2contributors;"`
 }
 
-type ContributorJSON struct {
-	Affiliation      []Affiliation `json:"affiliation,omitempty"`
-	ContributorRoles []string      `json:"contributorRoles,omitempty"`
-	FamilyName       *string       `json:"familyName,omitempty"`
-	GivenName        *string       `json:"givenName,omitempty"`
-	ID               *string       `json:"id,omitempty"`
-	Name             *string       `json:"name,omitempty"`
-	Type             string        `json:"type,omitempty"`
-}
-
 // The type of contribution made by a contributor
 type ContributorRole struct {
 	UUID            uuid.UUID `json:"uuid" gorm:"primaryKey;type:uuid;default:gen_random_uuid()" example:"5f410ec2-8eb8-4afd-b1f1-5a76114cc53e"`
@@ -41,23 +31,6 @@ type ContributorRole struct {
 }
 
 type Role string
-
-func (c *Contributor) MarshalJSON() ([]byte, error) {
-	contributorJSON := ContributorJSON{
-		ID:               c.ID,
-		Type:             string(c.Type),
-		ContributorRoles: []string{},
-		Name:             c.Name,
-		FamilyName:       c.FamilyName,
-		GivenName:        c.GivenName,
-		// Affiliation: c.Affiliation,
-	}
-
-	for _, cr := range c.ContributorRoles {
-		contributorJSON.ContributorRoles = append(contributorJSON.ContributorRoles, string(cr.Role))
-	}
-	return json.Marshal(contributorJSON)
-}
 
 func getContributorRole() []Role {
 	return []Role{
@@ -103,4 +76,35 @@ func getContributorRole() []Role {
 		"Maintainer",
 		"Other",
 	}
+}
+
+type ContributorJSON struct {
+	Affiliation      []Affiliation `json:"affiliation,omitempty"`
+	ContributorRoles []string      `json:"contributorRoles,omitempty"`
+	FamilyName       *string       `json:"familyName,omitempty"`
+	GivenName        *string       `json:"givenName,omitempty"`
+	ID               *string       `json:"id,omitempty"`
+	Name             *string       `json:"name,omitempty"`
+	Type             string        `json:"type,omitempty"`
+}
+
+func (c *Contributor) ToJSONModel() ContributorJSON {
+	cj := ContributorJSON{
+		ID:               c.ID,
+		Type:             string(c.Type),
+		ContributorRoles: []string{},
+		Name:             c.Name,
+		FamilyName:       c.FamilyName,
+		GivenName:        c.GivenName,
+		// Affiliation: c.Affiliation,
+	}
+
+	for _, cr := range c.ContributorRoles {
+		cj.ContributorRoles = append(cj.ContributorRoles, string(cr.Role))
+	}
+	return cj
+}
+
+func (c *Contributor) MarshalJSON() ([]byte, error) {
+	return json.Marshal(c.ToJSONModel())
 }

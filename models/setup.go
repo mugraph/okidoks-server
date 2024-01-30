@@ -16,7 +16,7 @@ func ConnectDatabase() {
 	dsn := "host=localhost user=postgres dbname=okidoks_db port=5432 sslmode=disable"
 	database, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		log.Error("Failed to connect to database!", err)
+		log.Error("failed to connect to database", err)
 	}
 
 	database.AutoMigrate(&Publisher{})

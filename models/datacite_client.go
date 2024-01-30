@@ -24,7 +24,7 @@ type DataCiteAttributes struct {
 	Prefix             *string               `json:"prefix"`
 	Titles             []DataCiteTitle       `json:"titles"`
 	Creators           []DataCiteCreator     `json:"creators"`
-	Publisher          string                `json:"publisher"`
+	Publisher          DataCitePublisher     `json:"publisher"`
 	Container          DataCiteContainer     `json:"container,omitempty"`
 	PublicationYear    uint                  `json:"publicationYear"`
 	Subjects           []DataCiteSubject     `json:"subjects"`
@@ -39,6 +39,14 @@ type DataCiteAttributes struct {
 
 type DataCiteTitle struct {
 	Title *string `json:"title"`
+}
+
+type DataCitePublisher struct {
+	Name                      *string `json:"name"`
+	SchemeURI                 *string `json:"schemeUri"`
+	PublisherIdentifier       *string `json:"publisherIdentifier"`
+	PublisherIdentifierScheme *string `json:"publisherIdentifierScheme"`
+	Lang                      *string `json:"lang"`
 }
 
 type DataCiteTypes struct {
@@ -123,49 +131,57 @@ type DataCiteRightsList struct {
 func GetDataCite(doi string) (attributes DataCiteAttributes, err error) {
 	doi, err = utils.ValidateDOI(doi)
 	if err != nil {
-		return DataCiteAttributes{}, fmt.Errorf("Failed to validate DOI: %v", err)
+		return DataCiteAttributes{}, fmt.Errorf("failed to validate DOI: %v", err)
 	}
 
-	// Construct the API URL for fetching DOI metadata
-	apiURL := "https://api.datacite.org/dois/" + doi
+	// Construct the API URL for fetching DOI attrdata
+	apiURL := "https://api.datacite.org/dois/" + doi + "?publisher=true&affiliation=true"
 
 	// Make the HTTP GET request with NewRequest and DefaultClient.Do
 	// for use with custom header
-	request, _ := http.NewRequest("GET", apiURL, nil)
-	request.Header.Add("accept", "application/vnd.api+json")
+	req, _ := http.NewRequest("GET", apiURL, nil)
+	req.Header.Add("accept", "application/vnd.api+json")
 
-	response, err := http.DefaultClient.Do(request)
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return DataCiteAttributes{}, fmt.Errorf("Failed to make HTTP request: %v", err)
+		return DataCiteAttributes{}, fmt.Errorf("failed to make HTTP request: %v", err)
 	}
-	defer response.Body.Close()
+	defer resp.Body.Close()
 
-	body, err := io.ReadAll(response.Body)
+	// Return on non-200 status codes
+	// DataCite API complies with JSON:API v1.1 where a server MUST respond with
+	// 200 OK for a successful request:
+	// https://jsonapi.org/format/#fetching-resources-responses
+	if resp.StatusCode != http.StatusOK {
+		return DataCiteAttributes{}, fmt.Errorf("HTTP response status: %v %v", resp.StatusCode, http.StatusText(resp.StatusCode))
+	}
+
+	// Read response body
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return DataCiteAttributes{}, fmt.Errorf("Failed to read response body: %v", err)
+		return DataCiteAttributes{}, fmt.Errorf("failed to read response body: %v", err)
 	}
 
 	// Unmarshal JSON response
 	var data DataCiteData
 	err = json.Unmarshal(body, &data)
 	if err != nil {
-		return DataCiteAttributes{}, fmt.Errorf("Failed to unmarshal JSON: %v", err)
+		return DataCiteAttributes{}, fmt.Errorf("failed to unmarshal JSON: %v", err)
 	}
 
 	return data.Attributes, nil
 }
 
-func ReadDataCite(attributes DataCiteAttributes) (resource Resource, err error) {
-	meta := attributes
+func ReadDataCite(attr DataCiteAttributes) (resource Resource, err error) {
 
-	id, err := utils.DOIAsURL(*meta.DOI)
+	id, err := utils.DOIAsURL(*attr.DOI)
 	if err != nil {
-		return Resource{}, fmt.Errorf("Could not get DOI as URL: %v", err)
+		return Resource{}, fmt.Errorf("could not get DOI as URL: %v", err)
 	}
 
-	// Define resource type according to Commonmeta
-	resourceTypeGeneral := meta.Types.ResourceTypeGeneral
-	resourceType := meta.Types.ResourceType
+	// Define resource type according to Commonattr
+	resourceTypeGeneral := attr.Types.ResourceTypeGeneral
+	resourceType := attr.Types.ResourceType
 
 	typeGeneral := utils.DcToCmTranslations[resourceTypeGeneral]
 	typeAdditional := utils.DcToCmTranslations[resourceType]
@@ -175,13 +191,12 @@ func ReadDataCite(attributes DataCiteAttributes) (resource Resource, err error) 
 		typeAdditional = ""
 	}
 
-	publisher := Publisher{Name: meta.Publisher}
+	publisher := Publisher{Name: *attr.Publisher.Name}
 
 	contributors := []Contributor{}
-	for _, v := range meta.Contributors {
+	for _, v := range attr.Contributors {
 		contributorRoles := []ContributorRole{}
 		contributorRoles = append(contributorRoles, ContributorRole{Role: Role(*v.ContributorType)})
-		// fmt.Printf("%v\n", contributorRoles)
 
 		// if v.ContributorType is Person
 		contributors = append(contributors, Contributor{
@@ -196,23 +211,16 @@ func ReadDataCite(attributes DataCiteAttributes) (resource Resource, err error) 
 	}
 
 	license := License{}
-	if len(meta.RightsList) > 0 {
+	if len(attr.RightsList) > 0 {
 		license = License{
-			URL: meta.RightsList[0].RightsURI,
+			URL: attr.RightsList[0].RightsURI,
 		}
 	}
-
-	// contributorsJSON, err := json.MarshalIndent(contributors, "", "  ")
-	// if err != nil {
-	// 	log.Error(err.Error())
-	// }
-
-	// fmt.Printf("MarshalIndent Contributors: %s\n", string(contributorsJSON))
 
 	resource = Resource{
 		ID:           id,
 		Type:         ResourceType(typeGeneral),
-		URL:          utils.NormalizeURL(meta.URL, true, true),
+		URL:          utils.NormalizeURL(attr.URL, true, true),
 		Contributors: contributors,
 		Publisher:    publisher,
 		// Recommended and optional properties

@@ -41,69 +41,6 @@ type Resource struct {
 	Version              *string               `json:"version,omitempty"`                         // The version of the resource.
 }
 
-// JSON representation of the Commonmeta schema.
-type ResourceJSON struct {
-	ID                   string                `json:"id"`
-	AdditionalType       *string               `json:"additional_type,omitempty"`
-	AlternateIdentifiers []AlternateIdentifier `json:"alternate_identifiers,omitempty"`
-	ArchiveLocations     []ArchiveLocation     `json:"archive_locations,omitempty"`
-	Container            *Container            `json:"container,omitempty"`
-	Contributors         []Contributor         `json:"contributors"`
-	Date                 Date                  `json:"date"`
-	Descriptions         []DescriptionElement  `json:"descriptions,omitempty"`
-	Files                []File                `json:"files,omitempty"`
-	Formats              []string              `json:"formats,omitempty"`
-	FundingReferences    []FundingReference    `json:"funding_references,omitempty"`
-	GeoLocations         []GeoLocation         `json:"geo_locations,omitempty"`
-	Language             *string               `json:"language,omitempty"`
-	License              *License              `json:"license,omitempty"`
-	Provider             *Provider             `json:"provider,omitempty"`
-	Publisher            *Publisher            `json:"publisher"`
-	References           []Reference           `json:"references,omitempty"`
-	RelatedIdentifiers   []RelatedIdentifier   `json:"related_identifiers,omitempty"`
-	SchemaVersion        *SchemaVersion        `json:"schema_version,omitempty"`
-	Sizes                []string              `json:"sizes,omitempty"`
-	State                *State                `json:"state,omitempty"`
-	Subjects             []Subject             `json:"subjects,omitempty"`
-	Titles               []Title               `json:"titles"`
-	Type                 string                `json:"type"`
-	URL                  string                `json:"url"`
-	Version              *string               `json:"version,omitempty"`
-}
-
-func (r *Resource) MarshalJSON() ([]byte, error) {
-
-	resourceJSON := ResourceJSON{
-		ID:                   r.ID,
-		AdditionalType:       r.AdditionalType,
-		AlternateIdentifiers: r.AlternateIdentifiers,
-		ArchiveLocations:     r.ArchiveLocations,
-		Container:            r.Container,
-		Contributors:         r.Contributors,
-		Date:                 r.Date,
-		Descriptions:         r.Descriptions,
-		Files:                r.Files,
-		Formats:              r.Formats,
-		FundingReferences:    r.FundingReferences,
-		GeoLocations:         r.GeoLocations,
-		Language:             r.Language,
-		License:              r.License,
-		Provider:             r.Provider,
-		Publisher:            &r.Publisher,
-		References:           r.References,
-		RelatedIdentifiers:   r.RelatedIdentifiers,
-		SchemaVersion:        r.SchemaVersion,
-		Sizes:                r.Sizes,
-		State:                r.State,
-		Subjects:             r.Subjects,
-		Titles:               r.Titles,
-		Type:                 string(r.Type),
-		URL:                  r.URL,
-		Version:              r.Version,
-	}
-	return json.Marshal(resourceJSON)
-}
-
 // The type of the resource.
 type ResourceType string
 
@@ -134,3 +71,68 @@ const (
 	TypeOther               ResourceType = "Other"
 	TypeSoftware            ResourceType = "Software"
 )
+
+// JSON representation of the Commonmeta schema.
+type ResourceJSON struct {
+	ID                   string                `json:"id"`
+	AdditionalType       *string               `json:"additional_type,omitempty"`
+	AlternateIdentifiers []AlternateIdentifier `json:"alternate_identifiers,omitempty"`
+	ArchiveLocations     []ArchiveLocation     `json:"archive_locations,omitempty"`
+	Container            *Container            `json:"container,omitempty"`
+	Contributors         []Contributor         `json:"contributors"`
+	Date                 Date                  `json:"date"`
+	Descriptions         []DescriptionElement  `json:"descriptions,omitempty"`
+	Files                []File                `json:"files,omitempty"`
+	Formats              []string              `json:"formats,omitempty"`
+	FundingReferences    []FundingReference    `json:"funding_references,omitempty"`
+	GeoLocations         []GeoLocation         `json:"geo_locations,omitempty"`
+	Language             *string               `json:"language,omitempty"`
+	License              *License              `json:"license,omitempty"`
+	Provider             *Provider             `json:"provider,omitempty"`
+	Publisher            *Publisher            `json:"publisher"`
+	References           []Reference           `json:"references,omitempty"`
+	RelatedIdentifiers   []RelatedIdentifier   `json:"related_identifiers,omitempty"`
+	SchemaVersion        *SchemaVersion        `json:"schema_version,omitempty"`
+	Sizes                []string              `json:"sizes,omitempty"`
+	State                *State                `json:"state,omitempty"`
+	Subjects             []Subject             `json:"subjects,omitempty"`
+	Titles               []Title               `json:"titles"`
+	Type                 string                `json:"type"`
+	URL                  string                `json:"url"`
+	Version              *string               `json:"version,omitempty"`
+}
+
+func (r *Resource) ToJSONModel() ResourceJSON {
+	return ResourceJSON{
+		ID:                   r.ID,
+		AdditionalType:       r.AdditionalType,
+		AlternateIdentifiers: r.AlternateIdentifiers,
+		ArchiveLocations:     r.ArchiveLocations,
+		Container:            r.Container,
+		Contributors:         r.Contributors,
+		Date:                 r.Date,
+		Descriptions:         r.Descriptions,
+		Files:                r.Files,
+		Formats:              r.Formats,
+		FundingReferences:    r.FundingReferences,
+		GeoLocations:         r.GeoLocations,
+		Language:             r.Language,
+		License:              r.License,
+		Provider:             r.Provider,
+		Publisher:            &r.Publisher,
+		References:           r.References,
+		RelatedIdentifiers:   r.RelatedIdentifiers,
+		SchemaVersion:        r.SchemaVersion,
+		Sizes:                r.Sizes,
+		State:                r.State,
+		Subjects:             r.Subjects,
+		Titles:               r.Titles,
+		Type:                 string(r.Type),
+		URL:                  r.URL,
+		Version:              r.Version,
+	}
+}
+
+func (r *Resource) MarshalJSON() ([]byte, error) {
+	return json.Marshal(r.ToJSONModel())
+}
