@@ -8,7 +8,7 @@ import (
 )
 
 // GET /publishers
-func FindPublishers(c *gin.Context) {
+func Publishers(c *gin.Context) {
 	publishers := []models.Publisher{}
 
 	models.DB.Find(&publishers)

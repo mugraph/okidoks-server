@@ -7,17 +7,11 @@ import (
 	"github.com/mugraph/okidoks-server/models"
 )
 
-type contributorsPayload struct {
-	Contributors []models.Contributor `json:"contributors"`
-}
-
 // GET /contributors
-func FindContributors(c *gin.Context) {
+func Contributors(c *gin.Context) {
 	contributors := []models.Contributor{}
 
 	models.DB.Preload("ContributorRoles").Preload("Resources").Find(&contributors)
 
-	c.JSON(http.StatusOK, contributorsPayload{
-		Contributors: contributors,
-	})
+	c.JSON(http.StatusOK, gin.H{"contributors": contributors})
 }

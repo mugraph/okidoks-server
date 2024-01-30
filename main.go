@@ -24,7 +24,9 @@ func main() {
 
 	ra, err := utils.GetDOIRA(*doi)
 	if err != nil {
-		log.Warn("could not get registration agency from DOI", "input", *doi, "error", err)
+		log.Warn("could not get registration agency from DOI",
+			"input", *doi,
+			"error", err)
 		return
 	}
 
@@ -33,25 +35,31 @@ func main() {
 		// Get DataCite attributes
 		attr, err := models.GetDataCite(*doi)
 		if err != nil {
-			log.Warn("could not get DataCite metadat for DOI", "input", *doi, "error", err)
+			log.Warn("could not get DataCite metadat for DOI",
+				"input", *doi,
+				"error", err)
+			return
 		}
 
 		// Read DataCite into resource
 		resource, err := models.ReadDataCite(attr)
 		if err != nil {
-			log.Warn("could not read DataCite metadata to Resource", "error", err)
+			log.Warn("could not read DataCite metadata to Resource",
+				"error", err)
+			return
 		}
 
 		// Add resource to DB
 		models.DB.Create(&resource)
 	}
 
-	router.GET("/resources", controllers.FindResources)
+	router.GET("/resource/:prefix/*suffix", controllers.FirstResource)
+	router.GET("/resources", controllers.Resources)
 	router.POST("/resources", controllers.CreateResource)
 
-	router.GET("/contributors", controllers.FindContributors)
+	router.GET("/contributors", controllers.Contributors)
 
-	router.GET("/publishers", controllers.FindPublishers)
+	router.GET("/publishers", controllers.Publishers)
 
 	router.Run(":8081")
 }

@@ -128,14 +128,15 @@ type DataCiteRightsList struct {
 	SchemeURI              *string `json:"schemeUri,omitempty"`
 }
 
-func GetDataCite(doi string) (attributes DataCiteAttributes, err error) {
+func GetDataCite(doi string) (attr DataCiteAttributes, err error) {
 	doi, err = utils.ValidateDOI(doi)
 	if err != nil {
-		return DataCiteAttributes{}, fmt.Errorf("failed to validate DOI: %v", err)
+		return attr, fmt.Errorf("failed to validate DOI: %v", err)
 	}
 
 	// Construct the API URL for fetching DOI attrdata
-	apiURL := "https://api.datacite.org/dois/" + doi + "?publisher=true&affiliation=true"
+	apiURL := "https://api.datacite.org/dois/" + doi +
+		"?publisher=true&affiliation=true"
 
 	// Make the HTTP GET request with NewRequest and DefaultClient.Do
 	// for use with custom header
@@ -144,7 +145,7 @@ func GetDataCite(doi string) (attributes DataCiteAttributes, err error) {
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return DataCiteAttributes{}, fmt.Errorf("failed to make HTTP request: %v", err)
+		return attr, fmt.Errorf("failed to make HTTP request: %v", err)
 	}
 	defer resp.Body.Close()
 
@@ -153,26 +154,27 @@ func GetDataCite(doi string) (attributes DataCiteAttributes, err error) {
 	// 200 OK for a successful request:
 	// https://jsonapi.org/format/#fetching-resources-responses
 	if resp.StatusCode != http.StatusOK {
-		return DataCiteAttributes{}, fmt.Errorf("HTTP response status: %v %v", resp.StatusCode, http.StatusText(resp.StatusCode))
+		return attr, fmt.Errorf("HTTP response status: %v %v",
+			resp.StatusCode, http.StatusText(resp.StatusCode))
 	}
 
 	// Read response body
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return DataCiteAttributes{}, fmt.Errorf("failed to read response body: %v", err)
+		return attr, fmt.Errorf("failed to read response body: %v", err)
 	}
 
 	// Unmarshal JSON response
 	var data DataCiteData
 	err = json.Unmarshal(body, &data)
 	if err != nil {
-		return DataCiteAttributes{}, fmt.Errorf("failed to unmarshal JSON: %v", err)
+		return attr, fmt.Errorf("failed to unmarshal JSON: %v", err)
 	}
 
 	return data.Attributes, nil
 }
 
-func ReadDataCite(attr DataCiteAttributes) (resource Resource, err error) {
+func ReadDataCite(attr DataCiteAttributes) (rs Resource, err error) {
 
 	id, err := utils.DOIAsURL(*attr.DOI)
 	if err != nil {
@@ -180,29 +182,28 @@ func ReadDataCite(attr DataCiteAttributes) (resource Resource, err error) {
 	}
 
 	// Define resource type according to Commonattr
-	resourceTypeGeneral := attr.Types.ResourceTypeGeneral
-	resourceType := attr.Types.ResourceType
+	rtg := attr.Types.ResourceTypeGeneral
+	rt := attr.Types.ResourceType
+	general := utils.DataCiteToCommonmeta[rtg]
+	additional := utils.DataCiteToCommonmeta[rt]
 
-	typeGeneral := utils.DcToCmTranslations[resourceTypeGeneral]
-	typeAdditional := utils.DcToCmTranslations[resourceType]
-
-	if typeAdditional != "" {
-		typeGeneral = typeAdditional
-		typeAdditional = ""
+	if additional != "" {
+		general = additional
+		additional = ""
 	}
 
-	publisher := Publisher{Name: *attr.Publisher.Name}
+	p := Publisher{Name: *attr.Publisher.Name}
 
-	contributors := []Contributor{}
+	c := []Contributor{}
 	for _, v := range attr.Contributors {
-		contributorRoles := []ContributorRole{}
-		contributorRoles = append(contributorRoles, ContributorRole{Role: Role(*v.ContributorType)})
+		roles := []ContributorRole{}
+		roles = append(roles, ContributorRole{Role: Role(*v.ContributorType)})
 
 		// if v.ContributorType is Person
-		contributors = append(contributors, Contributor{
+		c = append(c, Contributor{
 			GivenName:        v.GivenName,
 			FamilyName:       v.FamilyName,
-			ContributorRoles: contributorRoles,
+			ContributorRoles: roles,
 		})
 		// else if is Organization
 		// contributors = append(contributors, Contributor{
@@ -217,16 +218,16 @@ func ReadDataCite(attr DataCiteAttributes) (resource Resource, err error) {
 		}
 	}
 
-	resource = Resource{
+	rs = Resource{
 		ID:           id,
-		Type:         ResourceType(typeGeneral),
+		Type:         ResourceType(general),
 		URL:          utils.NormalizeURL(attr.URL, true, true),
-		Contributors: contributors,
-		Publisher:    publisher,
+		Contributors: c,
+		Publisher:    p,
 		// Recommended and optional properties
-		AdditionalType: &typeAdditional,
+		AdditionalType: &additional,
 		License:        &license,
 	}
 
-	return resource, nil
+	return rs, nil
 }

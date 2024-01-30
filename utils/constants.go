@@ -1,7 +1,7 @@
 // source: https://github.com/datacite/schema/blob/master/source/meta/kernel-4/include/datacite-resourceType-v4.xsd
 package utils
 
-var DcToCmTranslations = map[string]string{
+var DataCiteToCommonmeta = map[string]string{
 	"Audiovisual":           "Audiovisual",
 	"BlogPosting":           "Article",
 	"Book":                  "Book",
