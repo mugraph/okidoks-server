@@ -4,6 +4,7 @@ package models
 
 import (
 	"github.com/mugraph/okidoks-server/logger"
+	"github.com/mugraph/okidoks-server/models/commonmeta"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -19,8 +20,12 @@ func ConnectDatabase() {
 		log.Error("failed to connect to database", err)
 	}
 
-	database.AutoMigrate(&Publisher{})
-	database.AutoMigrate(&Resource{}, &ContributorRole{}, &Contributor{}, &License{})
+	database.AutoMigrate(&commonmeta.License{}, &commonmeta.Publisher{}, &commonmeta.Title{})
+	database.AutoMigrate(
+		&commonmeta.Resource{},
+		&commonmeta.ContributorRole{},
+		&commonmeta.Contributor{},
+	)
 
 	DB = database
 }

@@ -7,6 +7,7 @@ import (
 	"github.com/mugraph/okidoks-server/controllers"
 	"github.com/mugraph/okidoks-server/logger"
 	"github.com/mugraph/okidoks-server/models"
+	"github.com/mugraph/okidoks-server/models/datacite"
 	"github.com/mugraph/okidoks-server/utils"
 )
 
@@ -33,7 +34,7 @@ func main() {
 	if ra == "DataCite" {
 
 		// Get DataCite attributes
-		attr, err := models.GetDataCite(*doi)
+		r, err := datacite.GetDataCite(*doi)
 		if err != nil {
 			log.Warn("could not get DataCite metadat for DOI",
 				"input", *doi,
@@ -42,7 +43,7 @@ func main() {
 		}
 
 		// Read DataCite into resource
-		resource, err := models.ReadDataCite(attr)
+		resource, err := datacite.ReadDataCite(r)
 		if err != nil {
 			log.Warn("could not read DataCite metadata to Resource",
 				"error", err)

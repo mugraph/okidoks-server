@@ -14,6 +14,14 @@ func init() {
 	Log = logger(os.Stderr, slog.LevelInfo)
 }
 
+func logger(w io.Writer, level slog.Level) *slog.Logger {
+	return slog.New(slog.NewTextHandler(w, &slog.HandlerOptions{
+		AddSource:   true,
+		Level:       &level,
+		ReplaceAttr: ReplaceSourceAttr,
+	}))
+}
+
 // Provide shortfile in logger
 func ReplaceSourceAttr(groups []string, a slog.Attr) slog.Attr {
 	if a.Key == slog.SourceKey {
@@ -23,12 +31,4 @@ func ReplaceSourceAttr(groups []string, a slog.Attr) slog.Attr {
 		}
 	}
 	return a
-}
-
-func logger(w io.Writer, level slog.Level) *slog.Logger {
-	return slog.New(slog.NewTextHandler(w, &slog.HandlerOptions{
-		AddSource:   true,
-		Level:       &level,
-		ReplaceAttr: ReplaceSourceAttr,
-	}))
 }

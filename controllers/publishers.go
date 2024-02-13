@@ -5,11 +5,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/mugraph/okidoks-server/models"
+	"github.com/mugraph/okidoks-server/models/commonmeta"
 )
 
 // GET /publishers
 func Publishers(c *gin.Context) {
-	publishers := []models.Publisher{}
+	publishers := []commonmeta.Publisher{}
 
 	models.DB.Find(&publishers)
 

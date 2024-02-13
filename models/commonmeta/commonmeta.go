@@ -1,6 +1,6 @@
-// Version: v0.10.5
-// URL:     https://commonmeta.org/commonmeta_v0.10.5.json
-package models
+// Version: v0.11
+// URL:     https://commonmeta.org/commonmeta_v0.11.json
+package commonmeta
 
 import (
 	"encoding/json"
@@ -27,10 +27,15 @@ type AlternateIdentifier struct {
 
 // The container of the resource.
 type Container struct {
-	ID         *string        `json:"id,omitempty"`    // The identifier for the container.
-	Title      *string        `json:"title,omitempty"` // The title of the container.
-	Type       *ContainerType `json:"type,omitempty"`  // The type of the container.
-	ResourceID string
+	FirstPage      *string        `json:"firstPage,omitempty"`      // The firstPage of the resource.
+	Identifier     *string        `json:"identifier,omitempty"`     // The identifier for the container.
+	IdentifierType *string        `json:"identifierType,omitempty"` // The identifierType for the container.
+	Issue          *string        `json:"issue,omitempty"`          // The issue of the resource.
+	LastPage       *string        `json:"lastPage,omitempty"`       // The last page of the resource.
+	Title          *string        `json:"title,omitempty"`          // The title of the container.
+	Type           *ContainerType `json:"type,omitempty"`           // The type of the container.
+	Volume         *string        `json:"volume,omitempty"`         // The volume of the resource.
+	ResourceID     string
 }
 
 type Affiliation struct {
@@ -51,9 +56,10 @@ type Date struct {
 	ResourceID string  `json:"-"`
 }
 
-type DescriptionElement struct {
-	Description string           `json:"description"`    // The description of the resource.
-	Type        *DescriptionType `json:"type,omitempty"` // The type of the description.
+type Description struct {
+	Description string           `json:"description"`        // The description of the resource.
+	Language    *string          `json:"language,omitempty"` // The language of the description. Use one of the language codes from the IETF BCP 47 standard.
+	Type        *DescriptionType `json:"type,omitempty"`     // The type of the description.
 	ResourceID  string
 }
 
@@ -77,7 +83,7 @@ type FundingReference struct {
 }
 
 type GeoLocation struct {
-	UUID                uuid.UUID `json:"uuid" gorm:"primaryKey;type:uuid;default:gen_random_uuid()" example:"5f410ec2-8eb8-4afd-b1f1-5a76114cc53e"`
+	UUID                uuid.UUID `json:"uuid"                          gorm:"primaryKey;type:uuid;default:gen_random_uuid()" example:"5f410ec2-8eb8-4afd-b1f1-5a76114cc53e"`
 	GeoLocationBoxID    int
 	GeoLocationBox      *GeoLocationBox      `json:"geoLocationBox,omitempty"`
 	GeoLocationPlace    *string              `json:"geoLocationPlace,omitempty"`
@@ -103,7 +109,7 @@ type GeoLocationPoint struct {
 }
 
 type GeoLocationPolygon struct {
-	UUID             uuid.UUID `json:"uuid" gorm:"primaryKey;type:uuid;default:gen_random_uuid()" example:"5f410ec2-8eb8-4afd-b1f1-5a76114cc53e"`
+	UUID             uuid.UUID `json:"uuid"                     gorm:"primaryKey;type:uuid;default:gen_random_uuid()" example:"5f410ec2-8eb8-4afd-b1f1-5a76114cc53e"`
 	InPolygonPointID int
 	InPolygonPoint   *GeoLocationPoint  `json:"inPolygonPoint,omitempty"`
 	PolygonPoints    []GeoLocationPoint `json:"polygonPoints"`
@@ -138,120 +144,27 @@ type Subject struct {
 	ResourceID string
 }
 
-type Title struct {
-	Title      string     `json:"title"`          // The title of the resource.
-	Type       *TitleType `json:"type,omitempty"` // The type of the title.
-	ResourceID string
-}
-
+// The location where content is archived.
 type ArchiveLocation string
-
-const (
-	Clockss         ArchiveLocation = "CLOCKSS"
-	Dwt             ArchiveLocation = "DWT"
-	InternetArchive ArchiveLocation = "Internet Archive"
-	KB              ArchiveLocation = "KB"
-	Lockss          ArchiveLocation = "LOCKSS"
-	Portico         ArchiveLocation = "Portico"
-)
 
 // The type of the container.
 type ContainerType string
 
-const (
-	DataCatalog             ContainerType = "DataCatalog"
-	Periodical              ContainerType = "Periodical"
-	PurpleBook              ContainerType = "Book"
-	PurpleBookSeries        ContainerType = "BookSeries"
-	PurpleJournal           ContainerType = "Journal"
-	PurpleProceedingsSeries ContainerType = "ProceedingsSeries"
-	Repository              ContainerType = "Repository"
-	Series                  ContainerType = "Series"
-)
-
 // The type of the contributor.
 type ContributorType string
-
-const (
-	Organization ContributorType = "Organization"
-	Person       ContributorType = "Person"
-)
 
 // The type of the description.
 type DescriptionType string
 
-const (
-	Abstract    DescriptionType = "Abstract"
-	Description DescriptionType = "Description"
-	Summary     DescriptionType = "Summary"
-)
-
 type FunderIdentifierType string
-
-const (
-	CrossrefFunderID          FunderIdentifierType = "Crossref Funder ID"
-	FunderIdentifierTypeOther FunderIdentifierType = "Other"
-	Grid                      FunderIdentifierType = "GRID"
-	Isni                      FunderIdentifierType = "ISNI"
-	Ringgold                  FunderIdentifierType = "Ringgold"
-	Ror                       FunderIdentifierType = "ROR"
-)
 
 // The provider of the resource. This can be a DOI registration agency or a repository.
 type Provider string
 
-const (
-	Crossref Provider = "Crossref"
-	DataCite Provider = "DataCite"
-	GitHub   Provider = "GitHub"
-	JaLC     Provider = "JaLC"
-	Kisti    Provider = "KISTI"
-	MEDRA    Provider = "mEDRA"
-	Op       Provider = "OP"
-)
-
 type RelatedIdentifierType string
-
-const (
-	HasPart             RelatedIdentifierType = "HasPart"
-	HasPreprint         RelatedIdentifierType = "HasPreprint"
-	HasVersion          RelatedIdentifierType = "HasVersion"
-	IsIdenticalTo       RelatedIdentifierType = "IsIdenticalTo"
-	IsNewVersionOf      RelatedIdentifierType = "IsNewVersionOf"
-	IsOriginalFormOf    RelatedIdentifierType = "IsOriginalFormOf"
-	IsPartOf            RelatedIdentifierType = "IsPartOf"
-	IsPreprintOf        RelatedIdentifierType = "IsPreprintOf"
-	IsPreviousVersionOf RelatedIdentifierType = "IsPreviousVersionOf"
-	IsReviewedBy        RelatedIdentifierType = "IsReviewedBy"
-	IsSupplementTo      RelatedIdentifierType = "isSupplementTo"
-	IsTranslationOf     RelatedIdentifierType = "IsTranslationOf"
-	IsVariantFormOf     RelatedIdentifierType = "IsVariantFormOf"
-	IsVersionOf         RelatedIdentifierType = "IsVersionOf"
-	Reviews             RelatedIdentifierType = "Reviews"
-)
 
 // The schema version of the resource.
 type SchemaVersion string
 
-const (
-	HTTPDataciteOrgSchemaKernel3          SchemaVersion = "http://datacite.org/schema/kernel-3"
-	HTTPDataciteOrgSchemaKernel4          SchemaVersion = "http://datacite.org/schema/kernel-4"
-	HTTPSCommonmetaOrgCommonmetaV0105JSON SchemaVersion = "https://commonmeta.org/commonmeta_v0.10.5.json"
-)
-
 // The state of the resource.
 type State string
-
-const (
-	Findable State = "findable"
-	NotFound State = "not_found"
-)
-
-// The type of the title.
-type TitleType string
-
-const (
-	AlternativeTitle TitleType = "AlternativeTitle"
-	Subtitle         TitleType = "Subtitle"
-	TranslatedTitle  TitleType = "TranslatedTitle"
-)
