@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/mugraph/okidoks-server/utils"
 )
 
 type Contributor struct {
@@ -48,17 +49,17 @@ func (c *Contributor) ToJSONModel() ContributorJSON {
 	t := string(c.Type)
 	var roles []string
 	cj := ContributorJSON{
-		ID:               NilOrPtrToString(c.ID),
+		ID:               c.ID,
 		Type:             NilOrPtrToString(&t),
 		ContributorRoles: roles,
-		Name:             NilOrPtrToString(c.Name),
-		FamilyName:       NilOrPtrToString(c.FamilyName),
-		GivenName:        NilOrPtrToString(c.GivenName),
+		Name:             c.Name,
+		FamilyName:       c.FamilyName,
+		GivenName:        c.GivenName,
 		// Affiliation: c.Affiliation,
 	}
 
 	for _, cr := range c.ContributorRoles {
-		cj.ContributorRoles = append(cj.ContributorRoles, string(cr.Role))
+		cj.ContributorRoles = append(cj.ContributorRoles, utils.ContributorRoleMap.GetVal(string(cr.Role), true))
 	}
 	return cj
 }

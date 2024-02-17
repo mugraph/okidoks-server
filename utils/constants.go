@@ -72,7 +72,7 @@ var ResourceTypeMap ReadOnlyStringMap = ReadOnlyStringMap{
 	},
 }
 
-var RoleMap ReadOnlyStringMap = ReadOnlyStringMap{
+var ContributorRoleMap ReadOnlyStringMap = ReadOnlyStringMap{
 	data: map[string]string{
 		"Author":                "Author",
 		"Editor":                "Editor",

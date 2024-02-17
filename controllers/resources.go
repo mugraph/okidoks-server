@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/mugraph/okidoks-server/logger"
 	"github.com/mugraph/okidoks-server/models"
 	"github.com/mugraph/okidoks-server/models/commonmeta"
@@ -20,9 +21,12 @@ type doiPayload struct {
 	URL string
 }
 
-type StatusError struct {
-	Status int    `json:"status"`
-	Title  string `json:"title"`
+type APIErrorResponse struct {
+	Status  int    `json:"status,omitempty"`
+	Success bool   `json:"success,omitempty"`
+	Message string `json:"message,omitempty"`
+	Error   string `json:"error,omitempty"`
+	Level   string `json:"level,omitempty"` // Info, Warn, Error
 }
 
 // GET /resource/:prefix/*suffix
@@ -37,18 +41,18 @@ func FirstResource(c *gin.Context) {
 		log.Warn("could not get DOI as URL")
 	}
 
-	res := models.DB.Where("id = ?", doiURL).
+	err = models.DB.Where("id = ?", doiURL).
 		Preload("Contributors.ContributorRoles").
 		Preload(clause.Associations).
-		First(&resource)
+		First(&resource).Error
 
-	if errors.Is(res.Error, gorm.ErrRecordNotFound) {
-		err := []StatusError{}
-		err = append(err, StatusError{
-			Status: http.StatusNotFound,
-			Title:  "The resource you are looking for doesn't exist.",
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		c.JSON(http.StatusOK, APIErrorResponse{
+			Status:  http.StatusOK,
+			Success: false,
+			Message: "The resource you are looking for doesn't exist.",
+			Level:   "Error",
 		})
-		c.JSON(http.StatusNotFound, gin.H{"errors": err})
 		return
 	}
 
@@ -79,9 +83,9 @@ func FindOrCreateLicense(rl *commonmeta.License) commonmeta.License {
 	err := models.DB.Where("URL = ?", rl.URL).First(&l).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		log.Warn("license record not found", "error", err)
-		
+
 		models.DB.Create(&rl)
-		
+
 		l = FindOrCreateLicense(rl)
 	}
 	return l
@@ -93,7 +97,12 @@ func CreateResource(c *gin.Context) {
 	//Validate Input
 	var dp doiPayload
 	if err := c.ShouldBindJSON(&dp); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, APIErrorResponse{
+			Status:  http.StatusBadRequest,
+			Success: false,
+			Message: err.Error(),
+			Level:   "Error",
+		})
 		return
 	}
 
@@ -129,7 +138,7 @@ func CreateResource(c *gin.Context) {
 			return
 		}
 
-		// Find or create License and assign its UUID to resource.License.UUID
+		// Find or create license and assign its UUID to resource.License.UUID
 		// to comply with foreignKey contraints
 		if resource.License != nil {
 			license := FindOrCreateLicense(resource.License)
@@ -137,17 +146,34 @@ func CreateResource(c *gin.Context) {
 		}
 
 		// Find Publisher by its unique index and assign its UUID to resource.License.UUID
-		// to comply with foreignKey contraints 
-		var publisher commonmeta.Publisher	 
+		// to comply with foreignKey contraints
+		var publisher commonmeta.Publisher
 		err = models.DB.Where("Name = ?", resource.Publisher.Name).First(&publisher).Error
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Warn("license record not found", "error", err)
 		}
+
 		resource.Publisher.UUID = publisher.UUID
 
 		// Add resource to DB
-		models.DB.Create(&resource)
+		err = models.DB.Create(&resource).Error
+		if err != nil {
+			var pgErr *pgconn.PgError
+			if errors.As(err, &pgErr) {
+				log.Warn(pgErr.Message, "error", pgErr.Code)
 
-		c.JSON(http.StatusOK, gin.H{"data": resource})
+				c.JSON(http.StatusOK, APIErrorResponse{
+					Status:  http.StatusOK,
+					Success: false,
+					Message: utils.WithFullStop(utils.FirstToUpper(pgErr.Message)),
+					Error:   "SQLSTATE " + pgErr.Code,
+					Level:   "Warn",
+				})
+
+				return
+			}
+		}
+
+		c.JSON(http.StatusOK, gin.H{"data": &resource})
 	}
 }

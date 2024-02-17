@@ -62,7 +62,12 @@ func contributors(c []ResourceContributor) (con []*commonmeta.Contributor) {
 	for _, v := range c {
 		var roles []commonmeta.ContributorRole
 		roles = append(roles, commonmeta.ContributorRole{Role: commonmeta.Role(v.ContributorType)})
-		// if v.ContributorType is Person
+
+		if v.NameType == nil && len(v.NameIdentifiers) > 0 {
+			// if validate Orcid does not fail, type is Person 
+			// if validate ROR does not fail, type is Org
+		}
+
 		con = append(con, &commonmeta.Contributor{
 			GivenName:        v.GivenName,
 			FamilyName:       v.FamilyName,
