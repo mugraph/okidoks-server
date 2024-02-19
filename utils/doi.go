@@ -23,6 +23,11 @@ func GetDOIRA(doi string) (ra string, err error) {
 		return "", fmt.Errorf("failed to validate Prefix: %v", err)
 	}
 
+	// Return TestDataCite
+	if prefix == "10.82433" {
+		return "TestDataCite", nil
+	}
+
 	// The doi API string
 	apiURL := "https://doi.org/ra/" + prefix
 
@@ -65,9 +70,7 @@ func ValidateDOI(doi string) (vDoi string, err error) {
 
 	// Find macthes in the DOI string
 	match := re.FindStringSubmatch(doi)
-	if err != nil {
-		return "", fmt.Errorf("failed to find string submatch: %v", err)
-	} else if len(match) > 6 {
+	if len(match) > 6 {
 		vDoi = match[6]
 	} else {
 		// Handle the case when there is no match[6]

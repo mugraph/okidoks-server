@@ -141,6 +141,11 @@ func TestDOIfromURL(t *testing.T) {
 			"10.5061/dryad.8515",
 		},
 		{
+			"https://doi.org/10.5282/o-bib/5749 should be 10.5282/o-bib/5749",
+			"https://doi.org/10.5282/o-bib/5749",
+			"10.5282/o-bib/5749",
+		},
+		{
 			"10.5061/dryad.8515 should be 10.5071/dryad.8515",
 			"10.5061/dryad.8515",
 			"10.5061/dryad.8515",

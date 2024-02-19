@@ -50,7 +50,7 @@ func FirstResource(c *gin.Context) {
 		c.JSON(http.StatusOK, APIErrorResponse{
 			Status:  http.StatusOK,
 			Success: false,
-			Message: "The resource you are looking for doesn't exist.",
+			Message: "The resource you are looking for does not exist.",
 			Level:   "Error",
 		})
 		return
@@ -122,7 +122,7 @@ func CreateResource(c *gin.Context) {
 
 	if ra == "DataCite" {
 		// Get DataCite attributes
-		r, err := datacite.GetDataCite(url)
+		r, err := datacite.GetDataCite(url, false)
 		if err != nil {
 			log.Warn("could not get DataCite metadata for DOI",
 				"input", url,
@@ -150,7 +150,7 @@ func CreateResource(c *gin.Context) {
 		var publisher commonmeta.Publisher
 		err = models.DB.Where("Name = ?", resource.Publisher.Name).First(&publisher).Error
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Warn("license record not found", "error", err)
+			log.Warn("publisher record not found", "error", err)
 		}
 
 		resource.Publisher.UUID = publisher.UUID

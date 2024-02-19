@@ -20,11 +20,13 @@ func ConnectDatabase() {
 		log.Error("failed to connect to database", err)
 	}
 
-	database.AutoMigrate(&commonmeta.License{}, &commonmeta.Publisher{}, &commonmeta.Title{})
 	database.AutoMigrate(
 		&commonmeta.Resource{},
 		&commonmeta.ContributorRole{},
 		&commonmeta.Contributor{},
+		&commonmeta.License{},
+		&commonmeta.Publisher{},
+		&commonmeta.Title{},
 	)
 
 	DB = database

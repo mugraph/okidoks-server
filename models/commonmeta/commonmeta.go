@@ -1,5 +1,6 @@
 // Version: v0.11
 // URL:     https://commonmeta.org/commonmeta_v0.11.json
+
 package commonmeta
 
 import (
@@ -149,9 +150,6 @@ type ArchiveLocation string
 
 // The type of the container.
 type ContainerType string
-
-// The type of the contributor.
-type ContributorType string
 
 // The type of the description.
 type DescriptionType string

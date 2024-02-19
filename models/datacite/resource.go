@@ -242,7 +242,7 @@ type ResourceTitle struct {
 }
 
 type Types struct {
-	ResourceType        string             `json:"resourceType,omitempty"`
+	ResourceType        string              `json:"resourceType,omitempty"`
 	ResourceTypeGeneral ResourceTypeGeneral `json:"resourceTypeGeneral"`
 }
 

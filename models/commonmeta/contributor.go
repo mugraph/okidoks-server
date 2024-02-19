@@ -35,6 +35,9 @@ type ContributorRole struct {
 
 type Role string
 
+// The type of the contributor.
+type ContributorType string
+
 type ContributorJSON struct {
 	Affiliation      []Affiliation `json:"affiliation,omitempty"`
 	ContributorRoles []string      `json:"contributorRoles,omitempty"`
@@ -59,7 +62,7 @@ func (c *Contributor) ToJSONModel() ContributorJSON {
 	}
 
 	for _, cr := range c.ContributorRoles {
-		cj.ContributorRoles = append(cj.ContributorRoles, utils.ContributorRoleMap.GetVal(string(cr.Role), true))
+		cj.ContributorRoles = append(cj.ContributorRoles, utils.ContributorRoleMap.GetVal(string(cr.Role), true, true))
 	}
 	return cj
 }

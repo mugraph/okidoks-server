@@ -31,15 +31,26 @@ func main() {
 		return
 	}
 
-	if ra == "DataCite" {
-
-		// Get DataCite attributes
-		r, err := datacite.GetDataCite(*doi)
-		if err != nil {
-			log.Warn("could not get DataCite metadat for DOI",
-				"input", *doi,
-				"error", err)
-			return
+	if ra == "DataCite" || ra == "TestDataCite" {
+		var r datacite.Resource
+		if ra == "TestDataCite" {
+			// Get DataCite attributes
+			r, err = datacite.GetDataCite(*doi, true)
+			if err != nil {
+				log.Warn("could not get DataCite metadata for DOI",
+					"input", *doi,
+					"error", err)
+				return
+			}
+		} else {
+			// Get DataCite attributes
+			r, err = datacite.GetDataCite(*doi, false)
+			if err != nil {
+				log.Warn("could not get DataCite metadata for DOI",
+					"input", *doi,
+					"error", err)
+				return
+			}
 		}
 
 		// Read DataCite into resource

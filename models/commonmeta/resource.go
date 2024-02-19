@@ -33,7 +33,7 @@ type Resource struct {
 	License              *License               `json:"license,omitempty"               gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`                // The license for the resource. Use one of the SPDX license identifiers.
 	LicenseID            *uuid.UUID             `json:"-"                               gorm:"type:uuid"`                                                   // foreignKey
 	Provider             *Provider              `json:"provider,omitempty"              gorm:"type:text[]"`                                                 // The provider of the resource. This can be a DOI registration agency or a repository.
-	Publisher            *Publisher             `json:"publisher,omitempty"             gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`                                    // The publisher of the resource.
+	Publisher            *Publisher             `json:"publisher,omitempty"             gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`                // The publisher of the resource.
 	PublisherID          *uuid.UUID             `json:"-"                               gorm:"type:uuid"`                                                   // foreignKey
 	References           []*Reference           `json:"references,omitempty"`                                                                               // The references of the resource.
 	RelatedIdentifiers   []*RelatedIdentifier   `json:"related_identifiers,omitempty"`                                                                      // Other resolvable persistent unique IDs related to the resource.

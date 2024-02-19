@@ -109,6 +109,7 @@ var ContributorRoleMap ReadOnlyStringMap = ReadOnlyStringMap{
 		"ProjectAdministration": "ProjectAdministration",
 		"Resources":             "Resources",
 		"Software":              "Software",
+		"Supervisor":            "Supervision",
 		"Supervision":           "Supervision",
 		"Validation":            "Validation",
 		"Visualization":         "Visualization",
@@ -310,7 +311,7 @@ var NormalizedCCLicensesMap ReadOnlyStringMap = ReadOnlyStringMap{
 
 // Get returns the matching value for given key. If the key is not in map, it
 // may return "Other" or "".
-func (r ReadOnlyStringMap) GetVal(k string, tryOther bool) string {
+func (r ReadOnlyStringMap) GetVal(k string, tryOther, author bool) string {
 	if _, ok := r.data[k]; ok {
 		return r.data[k]
 	}
@@ -318,6 +319,9 @@ func (r ReadOnlyStringMap) GetVal(k string, tryOther bool) string {
 		if _, ok := r.data["Other"]; ok {
 			return r.data["Other"]
 		}
+	}
+	if author {
+		return "Author"
 	}
 	return ""
 }
