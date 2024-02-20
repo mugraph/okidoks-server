@@ -23,7 +23,7 @@ type Resource struct {
 	ArchiveLocations     []*ArchiveLocation     `json:"archive_locations,omitempty"     gorm:"type:text[]"`                                                 // The location where content is archived.
 	Container            *Container             `json:"container,omitempty"`                                                                                // The container of the resource.
 	Contributors         []*Contributor         `json:"contributors,omitempty"          gorm:"many2many:resource2contributors;constraint:OnDelete:CASCADE"` // The contributors to the resource.
-	Date                 Date                   `json:"date,omitempty"`                                                                                     // The dates for the resource.
+	Date                 *Date                  `json:"date,omitempty"                  gorm:"foreignKey:UUID"`                                             // The dates for the resource.
 	Descriptions         []*Description         `json:"descriptions,omitempty"`                                                                             // The descriptions of the resource.
 	Files                []*File                `json:"files,omitempty"`                                                                                    // The downloadable files for the resource.
 	Formats              []*string              `json:"formats,omitempty"               gorm:"type:text[]"`                                                 // The formats of the resource.
@@ -60,7 +60,7 @@ type ResourceJSON struct {
 	ArchiveLocations     []*ArchiveLocation     `json:"archive_locations,omitempty"`
 	Container            *Container             `json:"container,omitempty"`
 	Contributors         []*Contributor         `json:"contributors,omitempty"`
-	Date                 Date                   `json:"date,omitempty"`
+	Date                 *Date                  `json:"date,omitempty"`
 	Descriptions         []*Description         `json:"descriptions,omitempty"`
 	Files                []*File                `json:"files,omitempty"`
 	Formats              []*string              `json:"formats,omitempty"`

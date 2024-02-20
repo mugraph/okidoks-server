@@ -26,6 +26,7 @@ func ConnectDatabase() {
 		&commonmeta.Contributor{},
 		&commonmeta.License{},
 		&commonmeta.Publisher{},
+		&commonmeta.Date{},
 		&commonmeta.Title{},
 	)
 

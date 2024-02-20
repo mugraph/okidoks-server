@@ -4,13 +4,17 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"reflect"
 	"regexp"
 	"strings"
 
 	"github.com/mugraph/fullname_parser"
+	"github.com/mugraph/okidoks-server/logger"
 	"github.com/mugraph/okidoks-server/models/commonmeta"
 	"github.com/mugraph/okidoks-server/utils"
 )
+
+var log = logger.Log
 
 // Takes a datacite DOI string, validates it and fetches it's metadata via the datacite API.
 // Returns a datacite.Resource and an error.
@@ -361,6 +365,49 @@ func publisher(p Publisher) *commonmeta.Publisher {
 	return pub
 }
 
+func dates(rdates []Date, pubYear uint) (*commonmeta.Date) {
+	fmt.Println(pubYear)
+	var idate struct{
+		Accepted   string
+		Available  string
+		Created    string
+		Submitted  string
+		Updated    string
+		Withdrawn  string
+		Issued     string
+	}
+ 	for _, rd := range(rdates) {
+		v := reflect.ValueOf(&idate).Elem()
+    	f := v.FieldByName(string(rd.DateType))
+    	if f.IsValid() && f.CanSet() {
+        	if f.Kind() == reflect.String {
+            	f.SetString(rd.Date)
+        	} else {
+            	log.Warn("field is not a string type")
+        	}
+    	} else {
+        log.Warn(fmt.Sprint("field", string(rd.DateType), "not found or cannot be set"))
+		}
+ 	}
+
+	date := commonmeta.Date{
+		Accepted: idate.Accepted,
+		Available: idate.Available,
+		Created: idate.Created,
+		Submitted: idate.Submitted,
+		Updated: idate.Updated,
+		Withdrawn: idate.Withdrawn,
+	}
+
+	if (idate.Issued == "") {
+		date.Published = fmt.Sprint(pubYear)
+	} else {
+		date.Published = idate.Issued
+	}
+
+	return &date
+}
+
 // Takes a datacite.Resource struct by value.
 // Returns the corresponding commonmeta.Resource.
 func ReadDataCite(r Resource) (rs commonmeta.Resource, err error) {
@@ -378,7 +425,7 @@ func ReadDataCite(r Resource) (rs commonmeta.Resource, err error) {
 		Contributors: contributors(r.Contributors),
 		Titles:       titles(r.Titles),
 		Publisher:    publisher(r.Publisher),
-		// Date
+		Date:		  dates(r.Dates, r.PublicationYear),
 		// Recommended and optional properties
 		AdditionalType: &at,
 		License:        license(r.RightsList),

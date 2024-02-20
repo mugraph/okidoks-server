@@ -45,18 +45,6 @@ type Affiliation struct {
 	ContributorID uuid.UUID
 }
 
-// The dates for the resource.
-type Date struct {
-	Accepted   *string `json:"accepted,omitempty"`  // The date the resource was accepted.
-	Available  *string `json:"available,omitempty"` // The date the resource was made available.
-	Created    *string `json:"created,omitempty"`   // The date the resource was created.
-	Published  *string `json:"published,omitempty"` // The date the resource was published.
-	Submitted  *string `json:"submitted,omitempty"` // The date the resource was submitted.
-	Updated    *string `json:"updated,omitempty"`   // The date the resource was updated.
-	Withdrawn  *string `json:"withdrawn,omitempty"` // The date the resource was withdrawn.
-	ResourceID string  `json:"-"`
-}
-
 type Description struct {
 	Description string           `json:"description"`        // The description of the resource.
 	Language    *string          `json:"language,omitempty"` // The language of the description. Use one of the language codes from the IETF BCP 47 standard.
