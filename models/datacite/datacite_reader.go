@@ -16,7 +16,7 @@ import (
 
 var log = logger.Log
 
-// Takes a datacite DOI string, validates it and fetches it's metadata via the datacite API.
+// Datacite takes a datacite DOI string, validates it and fetches it's metadata via the datacite API.
 // Returns a datacite.Resource and an error.
 func GetDataCite(doi string, test bool) (Resource, error) {
 	doi, err := utils.ValidateDOI(doi)
@@ -71,6 +71,9 @@ func GetDataCite(doi string, test bool) (Resource, error) {
 	return r, nil
 }
 
+
+// FormatNameIdentifier takes in a NameIdentifier struct, checks its scheme and identifiers
+// returns a string.
 func FormatNameIdentifier(ni NameIdentifier) string {
 	if ni.NameIdentifierScheme == "ORCID" {
 		return utils.NormalizeORCID(ni.NameIdentifier)
@@ -99,6 +102,8 @@ func containsWord(words []string, word string) bool {
 	return false
 }
 
+// isPersonalName checks a string for a set of contitions and
+// returns a boolean.
 func isPersonalName(name string) bool {
 	// Personal Names are not allowed to contain semicolons
 	if strings.Contains(name, ";") {
@@ -180,7 +185,113 @@ func cleanupName(name string) string {
 	return name
 }
 
-// Parse onc ResourceContributor to commonmeta.Contributor
+// creator takes a ResourceCreator and parse it and
+// returns a commonmeta.Creator pointer.
+func creator(c ResourceCreator) (con *commonmeta.Contributor) {
+	var name string
+	if c.Name != "" {
+		name = cleanupName(c.Name)
+	}
+
+	var givenName string
+	if c.GivenName != nil {
+		givenName = string(*c.GivenName)
+	}
+
+	var familyName string
+	if c.FamilyName != nil {
+		familyName = string(*c.FamilyName)
+	}
+
+	var id string
+	for _, ni := range c.NameIdentifiers {
+		id = FormatNameIdentifier(ni)
+	}
+
+	var ctype string
+	if c.NameType != nil {
+		ctype = string(*c.NameType)
+		if ctype[len(ctype)-2:] == "al" {
+			ctype = ctype[:len(ctype)-2]
+		}
+	}
+
+	_, err := utils.ValidateROR(id)
+	if err == nil && id != "" && ctype == "" {
+		ctype = "Organization"
+	}
+
+	_, err = utils.ValidateORCID(id)
+	if err == nil && id != "" && ctype == "" {
+		ctype = "Person"
+	}
+
+	if ctype == "" && (c.GivenName != nil || c.FamilyName != nil) {
+		ctype = "Person"
+	}
+
+	if ctype == "" && c.Name != "" && isPersonalName(c.Name) {
+		ctype = "Person"
+	}
+
+	if ctype == "" && c.Name != "" {
+		ctype = "Organization"
+	}
+
+	if ctype == "Person" && c.Name != "" && c.GivenName == nil && c.FamilyName == nil {
+		// names = HumanName(name)
+		names := fullname_parser.ParseFullname(c.Name)
+		if names.First != "" {
+			givenName = names.First
+		}
+		if names.First != "" && names.Middle != "" {
+			givenName = names.First + " " + names.Middle
+		}
+		if names.Last != "" {
+			familyName = names.Last
+		}
+	}
+
+	// Parse contributor roles, checking for roles supported by commonmeta
+	var roles []commonmeta.ContributorRole
+	roles = append(
+		roles,
+		commonmeta.ContributorRole{
+			Role: commonmeta.Role(
+				utils.ContributorRoleMap.GetVal("Author", true, true),
+			),
+		},
+	)
+
+	con = &commonmeta.Contributor{
+		ContributorRoles: roles,
+	}
+
+	if id != "" {
+		con.ID = &id
+	}
+
+	// Final check for valid ContributorTypes then assign to Output
+	if ctype != "" {
+		con.Type = commonmeta.ContributorType(utils.ContributorTypeMap.GetVal(ctype, false, false))
+	}
+
+	// If ContributorType is Person, keep Given/FamilyName
+	if ctype == "Person" {
+		con.GivenName = &givenName
+		con.FamilyName = &familyName
+	}
+
+	// If ContributorType is Organization, keep Name
+	if ctype == "Organization" {
+		con.Name = &name
+	}
+
+	return con
+}
+
+// contributor takes a ResourceContributor and parse it and
+// returns a commonmeta.Contributor pointer.
 func contributor(c ResourceContributor) (con *commonmeta.Contributor) {
 	var name string
 	if c.Name != "" {
@@ -284,37 +395,42 @@ func contributor(c ResourceContributor) (con *commonmeta.Contributor) {
 	return con
 }
 
-// Takes a slice of datacite.ResourceContributors struct.
+// contributors takes a two slices of datacite.ResourceContributor and 
+// datacite.ResourceCreator structs.
 // Returns s slice of commonmeta.Contributor pointers.
-func contributors(c []ResourceContributor) (con []*commonmeta.Contributor) {
-	for _, v := range c {
+func contributors(contribs []ResourceContributor, creators []ResourceCreator) (con []*commonmeta.Contributor) {
+	for _, v := range creators {
+		contributor := creator(v)
+		con = append(con, contributor)
+	}
+	for _, v := range contribs {
 		contributor := contributor(v)
 		con = append(con, contributor)
 	}
 	return con
 }
 
-// Takes a datacite.Types struct by value.
+// types takes a datacite.Types struct by value.
 // Returns two commonmeta.ResourceType values.
-func types(t Types) (gt, at commonmeta.ResourceType) {
+func types(t Types) (ty, at commonmeta.ResourceType) {
 	rtg := string(t.ResourceTypeGeneral)
 	rt := t.ResourceType
 
-	gt = commonmeta.ResourceType(utils.DataciteToCommonMeta.GetVal(rtg, true, false))
+	ty = commonmeta.ResourceType(utils.DataciteToCommonMeta.GetVal(rtg, true, false))
 	at = commonmeta.ResourceType(utils.DataciteToCommonMeta.GetVal(rt, false, false))
 
 	// If ResourceType is one of the new ResourceTypeGeneral types
 	// introduced in schema 4.3, use it.
 	if at != "" {
-		gt = at
+		ty = at
 		at = ""
 	} else {
 		at = commonmeta.ResourceType(rt)
 	}
-	return gt, at
+	return ty, at
 }
 
-// Takes a slice of datacite.ResourceTitle structs.
+// titles takes a slice of datacite.ResourceTitle structs.
 // Returns a slice of commonmeta.Title pointers.
 func titles(t []ResourceTitle) (titles []*commonmeta.Title) {
 	for _, v := range t {
@@ -337,7 +453,7 @@ func titles(t []ResourceTitle) (titles []*commonmeta.Title) {
 	return titles
 }
 
-// Takes a slice of datacite.RightsList structs.
+// license takes a slice of datacite.RightsList structs.
 // Returns a commonmeta.License pointer.
 func license(rl []RightsList) *commonmeta.License {
 	var lic *commonmeta.License
@@ -358,13 +474,15 @@ func license(rl []RightsList) *commonmeta.License {
 	return lic
 }
 
-// Takes a datacite.Publisher struct by value.
+// publisher takes a datacite.Publisher struct by value.
 // Returns a commonmeta.Publisher pointer.
 func publisher(p Publisher) *commonmeta.Publisher {
 	pub := &commonmeta.Publisher{Name: p.Name}
 	return pub
 }
 
+// dates takes a slice of Date and the publicationYear as a uint.
+// Returns a commonmeta.Date pointer.
 func dates(rdates []Date, pubYear uint) (*commonmeta.Date) {
 	fmt.Println(pubYear)
 	var idate struct{
@@ -408,7 +526,7 @@ func dates(rdates []Date, pubYear uint) (*commonmeta.Date) {
 	return &date
 }
 
-// Takes a datacite.Resource struct by value.
+// ReadDataCite takes a datacite.Resource struct by value.
 // Returns the corresponding commonmeta.Resource.
 func ReadDataCite(r Resource) (rs commonmeta.Resource, err error) {
 	id, err := utils.DOIAsURL(r.Doi)
@@ -422,7 +540,7 @@ func ReadDataCite(r Resource) (rs commonmeta.Resource, err error) {
 		ID:           id,
 		Type:         &gt,
 		URL:          utils.NormalizeURL(*r.URL, true, true),
-		Contributors: contributors(r.Contributors),
+		Contributors: contributors(r.Contributors, r.Creators),
 		Titles:       titles(r.Titles),
 		Publisher:    publisher(r.Publisher),
 		Date:		  dates(r.Dates, r.PublicationYear),

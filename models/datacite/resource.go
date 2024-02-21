@@ -67,14 +67,8 @@ type Container struct {
 }
 
 type ResourceContributor struct {
+	ResourceCreator
 	ContributorType ContributorType  `json:"contributorType"`
-	Name            string           `json:"name"`
-	Affiliation     []Affiliation    `json:"affiliation,omitempty"`
-	FamilyName      *string          `json:"familyName,omitempty"`
-	GivenName       *string          `json:"givenName,omitempty"`
-	Lang            *string          `json:"lang,omitempty"`
-	NameIdentifiers []NameIdentifier `json:"nameIdentifiers,omitempty"`
-	NameType        *NameType        `json:"nameType,omitempty"`
 }
 
 type Affiliation struct {
