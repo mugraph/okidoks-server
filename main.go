@@ -65,13 +65,13 @@ func main() {
 		models.DB.Create(&resource)
 	}
 
-	router.GET("/resource/:prefix/*suffix", controllers.FirstResource)
-	router.GET("/resources", controllers.Resources)
-	router.POST("/resources", controllers.CreateResource)
+	router.GET("/api/v1/resource/:prefix/*suffix", controllers.FirstResource)
+	router.GET("/api/v1/resources", controllers.Resources)
+	router.POST("/api/v1/resources", controllers.CreateResource)
 
-	router.GET("/contributors", controllers.Contributors)
+	router.GET("/api/v1/contributors", controllers.Contributors)
 
-	router.GET("/publishers", controllers.Publishers)
+	router.GET("/api/v1/publishers", controllers.Publishers)
 
 	router.Run(":8081")
 }
