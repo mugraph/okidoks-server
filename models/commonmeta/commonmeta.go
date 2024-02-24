@@ -39,12 +39,6 @@ type Container struct {
 	ResourceID     string
 }
 
-type Affiliation struct {
-	ID            *string `json:"id,omitempty"`
-	Name          *string `json:"name,omitempty"`
-	ContributorID uuid.UUID
-}
-
 type Description struct {
 	Description string           `json:"description"`        // The description of the resource.
 	Language    *string          `json:"language,omitempty"` // The language of the description. Use one of the language codes from the IETF BCP 47 standard.

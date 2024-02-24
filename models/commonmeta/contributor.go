@@ -13,7 +13,7 @@ type Contributor struct {
 	CreatedAt time.Time `json:"created_at"                                                                  example:"2024-01-05T19:00:00.000000+01:00"`
 	UpdatedAt time.Time `json:"updated_at"                                                                  example:"2024-01-05T22:00:00.000000+01:00"`
 	// attributes
-	Affiliation      []Affiliation     `json:"affiliation,omitempty"`
+	Affiliation      []Affiliation     `json:"affiliation,omitempty" gorm:"foreignKey:ContributorUUID"` //
 	ContributorRoles []ContributorRole `json:"contributorRoles"      gorm:"foreignKey:ContributorUUID"` // List of roles assumed by the contributor when working on the resource.
 	FamilyName       *string           `json:"familyName,omitempty"`                                    // The family name of the contributor.
 	GivenName        *string           `json:"givenName,omitempty"`                                     // The given name of the contributor.
@@ -21,6 +21,32 @@ type Contributor struct {
 	Name             *string           `json:"name,omitempty"`                                          // The name of the contributor.
 	Type             ContributorType   `json:"type"`                                                    // The type of the contributor.
 	Resources        []Resource        `json:"resources"             gorm:"many2many:resource2contributors;"`
+}
+
+type Affiliation struct {
+	UUID      uuid.UUID `json:"uuid"           gorm:"primaryKey;type:uuid;default:gen_random_uuid()" example:"5f410ec2-8eb8-4afd-b1f1-5a76114cc53e"`
+	CreatedAt time.Time `json:"created_at"                                                           example:"2024-01-05T19:00:00.000000+01:00"`
+	UpdatedAt time.Time `json:"updated_at"                                                           example:"2024-01-05T22:00:00.000000+01:00"`
+	// attributes
+	ID              *string `json:"id,omitempty"`
+	Name            *string `json:"name,omitempty"`
+	ContributorUUID uuid.UUID
+}
+
+type AffiliationJSON struct {
+	ID   *string `json:"id,omitempty"`
+	Name *string `json:"name,omitempty"`
+}
+
+func (a *Affiliation) ToJSONModel() AffiliationJSON {
+	return AffiliationJSON{
+		Name: NilOrPtrToString(a.Name),
+		ID:   NilOrPtrToString(a.ID),
+	}
+}
+
+func (a *Affiliation) MarshalJSON() ([]byte, error) {
+	return json.Marshal(a.ToJSONModel())
 }
 
 // The type of contribution made by a contributor
@@ -58,12 +84,13 @@ func (c *Contributor) ToJSONModel() ContributorJSON {
 		Name:             c.Name,
 		FamilyName:       c.FamilyName,
 		GivenName:        c.GivenName,
-		// Affiliation: c.Affiliation,
+		Affiliation:      c.Affiliation,
 	}
 
 	for _, cr := range c.ContributorRoles {
 		cj.ContributorRoles = append(cj.ContributorRoles, utils.ContributorRoleMap.GetVal(string(cr.Role), true, true))
 	}
+
 	return cj
 }
 

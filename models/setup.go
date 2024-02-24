@@ -14,7 +14,7 @@ var log = logger.Log
 
 func ConnectDatabase() {
 	// Data Source Name
-	dsn := "host=localhost user=postgres dbname=okidoks_db port=5432 sslmode=disable"
+	dsn := "host=localhost user=postgres password=GoFIBpdTqmpnN dbname=okidoks_db port=5432 sslmode=disable"
 	database, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Error("failed to connect to database", err)
@@ -23,6 +23,7 @@ func ConnectDatabase() {
 	database.AutoMigrate(
 		&commonmeta.Resource{},
 		&commonmeta.ContributorRole{},
+		&commonmeta.Affiliation{},
 		&commonmeta.Contributor{},
 		&commonmeta.License{},
 		&commonmeta.Publisher{},

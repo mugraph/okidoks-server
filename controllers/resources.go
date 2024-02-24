@@ -43,6 +43,7 @@ func FirstResource(c *gin.Context) {
 
 	err = models.DB.Where("id = ?", doiURL).
 		Preload("Contributors.ContributorRoles").
+		Preload("Contributors.Affiliation").
 		Preload(clause.Associations).
 		First(&resource).Error
 
@@ -57,7 +58,7 @@ func FirstResource(c *gin.Context) {
 	}
 
 	// Pass address as custom MarshalJSON method is defined on pointer receiver.
-	c.JSON(http.StatusOK, gin.H{"resource": &resource})
+	c.JSON(http.StatusOK, &resource)
 }
 
 // GET /resources
@@ -65,12 +66,24 @@ func Resources(c *gin.Context) {
 	var resources []commonmeta.Resource
 
 	models.DB.Preload("Contributors.ContributorRoles").
+		Preload("Contributors.Affiliation").
 		Preload(clause.Associations).
 		Find(&resources)
 
 	// json.Marshal traverses values recursively and calls custom MarshalJSON
 	// method where possible.
-	c.JSON(http.StatusOK, gin.H{"resources": resources})
+	c.JSON(http.StatusOK, resources)
+}
+
+// GET /affiliations
+func Affiliations(c *gin.Context) {
+	var affiliations []commonmeta.Affiliation
+
+	models.DB.Find(&affiliations)
+
+	// json.Marshal traverses values recursively and calls custom MarshalJSON
+	// method where possible.
+	c.JSON(http.StatusOK, gin.H{"affiliations": affiliations})
 }
 
 // FindCreateLicense takes a pointer to a commonmeta.License struct and queries

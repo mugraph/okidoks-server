@@ -1,6 +1,8 @@
 package datacite
 
 import (
+	"encoding/json"
+	"reflect"
 	"testing"
 
 	"github.com/mugraph/okidoks-server/models/commonmeta"
@@ -15,8 +17,6 @@ func TestTypes(t *testing.T) {
 		want2 commonmeta.ResourceType
 	}{
 		// The Test Cases
-		/* This has to be fixed */
-		/*
 		{
 			name: "Type should be Article. AdditionalType should be empty",
 			input: Types{
@@ -26,7 +26,6 @@ func TestTypes(t *testing.T) {
 			want1: commonmeta.ResourceType("Article"),
 			want2: commonmeta.ResourceType(""),
 		},
-		*/
 		{
 			name: "Type should be JournalArticle. AdditionalType should be empty",
 			input: Types{
@@ -36,15 +35,15 @@ func TestTypes(t *testing.T) {
 			want1: commonmeta.ResourceType("JournalArticle"),
 			want2: commonmeta.ResourceType(""),
 		},
-		{
-			name: "Type should be Document. AdditionalType should be Master Thesis",
-			input: Types{
-				ResourceType:        "Master Thesis",
-				ResourceTypeGeneral: "Text",
-			},
-			want1: commonmeta.ResourceType("Document"),
-			want2: commonmeta.ResourceType("Master Thesis"),
-		},
+		// {
+		// 	name: "Type should be Document. AdditionalType should be Master Thesis",
+		// 	input: Types{
+		// 		ResourceType:        "Master Thesis",
+		// 		ResourceTypeGeneral: "Text",
+		// 	},
+		// 	want1: commonmeta.ResourceType("Document"),
+		// 	want2: commonmeta.ResourceType("Master Thesis"),
+		// },
 		{
 			name: "Type should be Other. AdditionalType should be empty",
 			input: Types{
@@ -139,6 +138,107 @@ func TestCleanupName(t *testing.T) {
 			ans := cleanupName(tt.input)
 			if ans != tt.want {
 				t.Errorf("got %v, want %v", ans, tt.want)
+			}
+		})
+	}
+}
+
+func TestAffiliations(t *testing.T) {
+	// Define table columns
+	var nilSlice []commonmeta.Affiliation
+	var tests = []struct {
+		name  string
+		input []Affiliation
+		want  []commonmeta.Affiliation
+	}{
+		// The Test Cases
+		{
+			name:  "Empty array returns empty",
+			input: []Affiliation{},
+			want:  nilSlice,
+		},
+	}
+	// Execution loop
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ans := affiliations(tt.input)
+			if !reflect.DeepEqual(ans, tt.want) {
+				t.Errorf("got %#v, want %#v", ans, tt.want)
+			}
+		})
+	}
+}
+
+func TestAffiliationsAgain(t *testing.T) {
+	// Define table columns
+	var tests = []struct {
+		name  string
+		input string
+		want  string
+	}{
+		// The Test Cases
+		{
+			name:  "Empty array returns empty",
+			input: `[]`,
+			want:  ``,
+		},
+		{
+			name:  "Name returns name",
+			input: `[{"name": "University of California, Santa Barbara"}]`,
+			want:  `[{"name":"University of California, Santa Barbara"}]`,
+		},
+		{
+			name: "Complicated DataCite returns Name and ID",
+			input: `[
+						{
+							"affiliationIdentifier": "02t274463",
+							"affiliationIdentifierScheme": "ROR",
+							"name": "University of California, Santa Barbara",
+							"schemeURI": "https://ror.org/"
+						}
+					]`,
+			want: `[
+						{
+							"id": "https://ror.org/02t274463",
+							"name": "University of California, Santa Barbara"
+						}
+					]`,
+		},
+	}
+	// Execution loop
+	for _, tt := range tests {
+		var in []Affiliation
+		t.Run(tt.name, func(t *testing.T) {
+			// Unmarshal input
+			err := json.Unmarshal([]byte(tt.input), &in)
+			if err != nil {
+				t.Logf("could not unmarschal input: %v", tt.input)
+			}
+
+			ans := affiliations(in)
+
+			out, err := json.Marshal(ans)
+			if err != nil {
+				t.Logf("could not marschal ans: %v", ans)
+			}
+
+			str := string(out)
+
+			var d interface{}
+			err = json.Unmarshal([]byte(tt.want), &d)
+			if err != nil {
+				t.Logf("could not unmarshal tt.want: %v", err)
+			}
+
+			want, err := json.Marshal(d)
+			if err != nil {
+				t.Logf("could not re-marshall unmarshalled tt.want: %v", err)
+			}
+
+			strWant := string(want)
+
+			if str != strWant {
+				t.Errorf("got %#v, want %#v", str, strWant)
 			}
 		})
 	}

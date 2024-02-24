@@ -12,7 +12,10 @@ import (
 func Contributors(c *gin.Context) {
 	contributors := []commonmeta.Contributor{}
 
-	models.DB.Preload("ContributorRoles").Preload("Resources").Find(&contributors)
+	models.DB.Preload("ContributorRoles").
+		Preload("Affiliation").
+		Preload("Resources").
+		Find(&contributors)
 
 	c.JSON(http.StatusOK, gin.H{"contributors": contributors})
 }

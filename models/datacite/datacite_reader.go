@@ -71,7 +71,6 @@ func GetDataCite(doi string, test bool) (Resource, error) {
 	return r, nil
 }
 
-
 // FormatNameIdentifier takes in a NameIdentifier struct, checks its scheme and identifiers
 // returns a string.
 func FormatNameIdentifier(ni NameIdentifier) string {
@@ -287,6 +286,8 @@ func creator(c ResourceCreator) (con *commonmeta.Contributor) {
 		con.Name = &name
 	}
 
+	con.Affiliation = affiliations(c.Affiliation)
+
 	return con
 }
 
@@ -392,10 +393,52 @@ func contributor(c ResourceContributor) (con *commonmeta.Contributor) {
 		con.Name = &name
 	}
 
+	con.Affiliation = affiliations(c.Affiliation)
+
 	return con
 }
 
-// contributors takes a two slices of datacite.ResourceContributor and 
+func affiliation(a Affiliation) commonmeta.Affiliation {
+	var id string
+	var schemeURI string
+	if a.AffiliationIdentifier != nil && *a.AffiliationIdentifier != "" {
+		id = *a.AffiliationIdentifier
+		if a.SchemeURI != nil && *a.SchemeURI != "" {
+			if strings.HasSuffix(*a.SchemeURI, "/") {
+				schemeURI = *a.SchemeURI
+			}
+			// } else {
+			//	 "{affiliation['schemeURI']}/"
+			//}
+		}
+		if !strings.HasPrefix(id, "https://") && schemeURI != "" {
+			id = utils.NormalizeID(schemeURI+id, false)
+		} else {
+			id = utils.NormalizeID(id, false)
+		}
+	}
+
+	return commonmeta.Affiliation{
+		ID:   &id,
+		Name: &a.Name,
+	}
+}
+
+// affilications takes a slice of datacite.Affiliation structs and
+// returns a slice of unqiue commonmeta.Affiliation structs
+func affiliations(as []Affiliation) (aff []commonmeta.Affiliation) {
+	set := make(map[commonmeta.Affiliation]struct{})
+	for _, v := range as {
+		a := affiliation(v)
+		set[a] = struct{}{}
+		for k := range set {
+			aff = append(aff, k)
+		}
+	}
+	return aff
+}
+
+// contributors takes a two slices of datacite.ResourceContributor and
 // datacite.ResourceCreator structs.
 // Returns s slice of commonmeta.Contributor pointers.
 func contributors(contribs []ResourceContributor, creators []ResourceCreator) (con []*commonmeta.Contributor) {
@@ -424,8 +467,6 @@ func types(t Types) (ty, at commonmeta.ResourceType) {
 	if at != "" {
 		ty = at
 		at = ""
-	} else {
-		at = commonmeta.ResourceType(rt)
 	}
 	return ty, at
 }
@@ -483,41 +524,40 @@ func publisher(p Publisher) *commonmeta.Publisher {
 
 // dates takes a slice of Date and the publicationYear as a uint.
 // Returns a commonmeta.Date pointer.
-func dates(rdates []Date, pubYear uint) (*commonmeta.Date) {
-	fmt.Println(pubYear)
-	var idate struct{
-		Accepted   string
-		Available  string
-		Created    string
-		Submitted  string
-		Updated    string
-		Withdrawn  string
-		Issued     string
+func dates(rdates []Date, pubYear uint) *commonmeta.Date {
+	var idate struct {
+		Accepted  string
+		Available string
+		Created   string
+		Submitted string
+		Updated   string
+		Withdrawn string
+		Issued    string
 	}
- 	for _, rd := range(rdates) {
+	for _, rd := range rdates {
 		v := reflect.ValueOf(&idate).Elem()
-    	f := v.FieldByName(string(rd.DateType))
-    	if f.IsValid() && f.CanSet() {
-        	if f.Kind() == reflect.String {
-            	f.SetString(rd.Date)
-        	} else {
-            	log.Warn("field is not a string type")
-        	}
-    	} else {
-        log.Warn(fmt.Sprint("field", string(rd.DateType), "not found or cannot be set"))
+		f := v.FieldByName(string(rd.DateType))
+		if f.IsValid() && f.CanSet() {
+			if f.Kind() == reflect.String {
+				f.SetString(rd.Date)
+			} else {
+				log.Warn("field is not a string type")
+			}
+		} else {
+			log.Warn(fmt.Sprint("field", string(rd.DateType), "not found or cannot be set"))
 		}
- 	}
+	}
 
 	date := commonmeta.Date{
-		Accepted: idate.Accepted,
+		Accepted:  idate.Accepted,
 		Available: idate.Available,
-		Created: idate.Created,
+		Created:   idate.Created,
 		Submitted: idate.Submitted,
-		Updated: idate.Updated,
+		Updated:   idate.Updated,
 		Withdrawn: idate.Withdrawn,
 	}
 
-	if (idate.Issued == "") {
+	if idate.Issued == "" {
 		date.Published = fmt.Sprint(pubYear)
 	} else {
 		date.Published = idate.Issued
@@ -543,7 +583,7 @@ func ReadDataCite(r Resource) (rs commonmeta.Resource, err error) {
 		Contributors: contributors(r.Contributors, r.Creators),
 		Titles:       titles(r.Titles),
 		Publisher:    publisher(r.Publisher),
-		Date:		  dates(r.Dates, r.PublicationYear),
+		Date:         dates(r.Dates, r.PublicationYear),
 		// Recommended and optional properties
 		AdditionalType: &at,
 		License:        license(r.RightsList),
