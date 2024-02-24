@@ -63,10 +63,7 @@ func ValidateDOI(doi string) (vDoi string, err error) {
 	pattern := `(?:(http|https):\/(\/)?(dx\.)?(doi\.org|handle\.stage\.datacite\.org|handle\.test\.datacite\.org)\/)?(doi:)?(10\.\d{4,5}\/.+)`
 
 	// Compile the regex
-	re, err := regexp.Compile(pattern)
-	if err != nil {
-		return "", fmt.Errorf("failed to compile regex: %v", err)
-	}
+	re := regexp.MustCompile(pattern)
 
 	// Find macthes in the DOI string
 	match := re.FindStringSubmatch(doi)
@@ -87,10 +84,7 @@ func ValidatePrefix(doi string) (prefix string, err error) {
 	pattern := `^(?:(http|https):\/(\/)?(dx\.)?(doi\.org|handle\.stage\.datacite\.org|handle\.test\.datacite\.org)\/)?(doi:)?(10\.\d{4,5}).*$`
 
 	// Compile the regex
-	re, err := regexp.Compile(pattern)
-	if err != nil {
-		return "", fmt.Errorf("failed to compile regex: %v", err)
-	}
+	re := regexp.MustCompile(pattern)
 
 	// Find macthes in the DOI string
 	match := re.FindStringSubmatch(doi)
@@ -117,10 +111,7 @@ func DOIFromURL(url string) (doi string, err error) {
 	pattern := `^(?:(http|https)://(dx\.)?(doi\.org|handle\.stage\.datacite\.org|handle\.test\.datacite\.org)/)?(doi:)?(10\.\d{4,5}/.+)$`
 
 	// Compile the regex
-	re, err := regexp.Compile(pattern)
-	if err != nil {
-		return "", fmt.Errorf("failed to compile regex: %v", err)
-	}
+	re := regexp.MustCompile(pattern)
 
 	// Find macthes in the DOI string
 	match := re.FindStringSubmatch(url)
@@ -149,4 +140,21 @@ func DOIAsURL(doi string) (url string, err error) {
 	}
 	url = "https://doi.org/" + doi
 	return url, err
+}
+
+func DOIResolver(doi string, sandbox bool) string {
+	if doi == "" {
+		return ""
+	}
+
+	pattern := `\A(http|https):/(/)?handle\.stage\.datacite\.org`
+	re := regexp.MustCompile(pattern)
+
+	match := re.MatchString(doi)
+
+	if match || sandbox {
+		return "https://handle.stage.datacite.org/"
+	}
+
+	return "https://doi.org/"
 }

@@ -25,10 +25,7 @@ func ValidateURL(s string) string {
 	// Check for ISSN
 	pattern := `(ISSN|eISSN) (\d{4}-\d{3}[0-9X]+)`
 
-	re, err := regexp.Compile(pattern)
-	if err != nil {
-		log.Warn("failed to compile regex", err)
-	}
+	re := regexp.MustCompile(pattern)
 
 	match := re.FindStringSubmatch(s)
 	if len(match) >= 1 {

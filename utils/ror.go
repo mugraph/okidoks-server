@@ -10,10 +10,7 @@ import (
 func ValidateROR(ror string) (string, error) {
 	pattern := `(?:(?:http|https):\/\/ror\.org\/)?([0-9a-z]{7}\d{2})`
 
-	re, err := regexp.Compile(pattern)
-	if err != nil {
-		return "", fmt.Errorf("failed to compile regex: %v", re)
-	}
+	re := regexp.MustCompile(pattern)
 
 	match := re.FindStringSubmatch(ror)
 	if len(match) >= 1 {

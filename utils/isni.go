@@ -10,10 +10,7 @@ import (
 func ValidateISNI(isni string) (string, error) {
 	pattern := `(?:(?:http|https):\/\/isni\.org\/isni\/)?(\d{4}([ -])?\d{4}([ -])?\d{4}([ -])?\d{3}[0-9X]+)`
 
-	re, err := regexp.Compile(pattern)
-	if err != nil {
-		return "", fmt.Errorf("failed to compile regex: %v", re)
-	}
+	re := regexp.MustCompile(pattern)
 
 	match := re.FindStringSubmatch(isni)
 	if len(match) >= 1 {

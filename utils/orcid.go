@@ -10,10 +10,7 @@ import (
 func ValidateORCID(orcid string) (string, error) {
 	pattern := `(?:(?:http|https):\/\/(?:(?:www|sandbox)?\.)?orcid\.org\/)?(\d{4}[ -]\d{4}[ -]\d{4}[ -]\d{3}[0-9X]+)`
 
-	re, err := regexp.Compile(pattern)
-	if err != nil {
-		return "", fmt.Errorf("failed to compile regex: %v", re)
-	}
+	re := regexp.MustCompile(pattern)
 
 	match := re.FindStringSubmatch(orcid)
 	if len(match) >= 1 {
