@@ -11,7 +11,7 @@ import (
 var Log *slog.Logger
 
 func init() {
-	Log = logger(os.Stderr, slog.LevelInfo)
+	Log = logger(os.Stdout, slog.LevelInfo)
 }
 
 func logger(w io.Writer, level slog.Level) *slog.Logger {
